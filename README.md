@@ -57,16 +57,6 @@ Each row corresponds to one spectrum.
 
 ---
 
-## Format
-
-```text
-V1,V2,V3,...,V1983,label
-0.002,0.015,...,-0.004,PP
-...
-```
-
----
-
 ## Class Distribution
 
 | Polymer | Samples |
@@ -144,13 +134,6 @@ with balanced polymer classes.
 ---
 
 ## Important Note About Spectral Data
-
-The spectral data is stored as paired values:
-
-```text
-Data(x) = wavelength / wavenumber
-Data(y) = spectral intensity
-```
 
 In FTIR spectroscopy:
 - `Data(x)` usually represents the wavenumber axis (cm⁻¹)
