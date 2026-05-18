@@ -89,7 +89,7 @@ def main(k):
             x = layers.Dense(64, activation='relu')(x)
             x = layers.Dropout(0.2)(x)
 
-            outputs = layers.Dense(10, activation='softmax')(x)
+            outputs = layers.Dense(6, activation='softmax')(x)
             model = keras.Model(inputs, outputs, name="fcnn")
             return model
 
