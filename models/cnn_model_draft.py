@@ -1,29 +1,32 @@
 # THIS IS HEAVILY BASED ON THIS EXAMPLE: https://github.com/zavalab/ML/blob/master/CNN_Plastic/code/train.py
 # ALL CODE WAS UNDERSTOOD AND REWRITTEN BY ME EXCLUDING SOME FUNCTION CALLS
 
-import os
-import sys
-import subprocess
+import csv
+from pathlib import Path
 import numpy as np
+import sklearn.metrics as skm
+import tensorflow as tf
+from sklearn.model_selection import StratifiedKFold, train_test_split
+from tensorflow import keras
+from tensorflow.keras import layers
 
-def main(k):
 
-    dbs1_path = r"C:\Users\20242972\Downloads\FTIR_PLASTIC_c4.csv"
-    dbs2_path = r"C:\Users\20242972\Downloads\FTIR_PLASTIC_c8.csv"
+def load_and_preprocess():
+    dbs1_path = r"data\FTIR_PLASTIC_c4.csv"
+    dbs2_path = r"data\FTIR_PLASTIC_c8.csv"
     data = []
 
-    # Here we extract the data and drop all columns except the label, data(x), and data(y)
-
-    import csv
+    # Extract each row, keeping only the label, wavenumber (x), and absorbance (y) columns
     with open(dbs1_path, newline="") as dbs:
         dbs_reader = csv.reader(dbs)
         dbs_reader.__next__()
         for row in dbs_reader:
-            # c4 dataset samples wavenumbers at twice the frequency of c8, so we skip every second data x and y pair. Wavenumbers match, I checked
+            # c4 samples wavenumbers at twice the frequency of c8, so we take every other (wavenumber, absorbance) pair
+            # step=4 skips the duplicate pair; wavenumber alignment with c8 was verified manually
             corrected_row = [row[0]]
             for i in range(6, len(row), 4):
-                for k in [float(row[i]), float(row[i+1])]:
-                    corrected_row.append(k)
+                for val in [float(row[i]), float(row[i+1])]:
+                    corrected_row.append(val)
             data.append(np.array(corrected_row))
 
     with open(dbs2_path, newline="") as dbs:
@@ -34,9 +37,8 @@ def main(k):
             ar = np.concatenate([ar, np.array(row[6:len(row) - 2])])
             data.append(ar)
 
-
-    # Data exists in data array - next we ensure existing data is evenly spaced with regards to wavenumber
-    # Data x (wavenumber) exists at indices <6 with step 2
+    # Verify that wavenumber spacing is uniform within and across spectra
+    # (sampled every 10th row for performance; assumes the rest are consistent)
     prev_avg_delta_x = 0
     for row in range(0, len(data), 10):
         prev_delta_x = (float(data[row][3]) - float(data[row][1]))
@@ -45,8 +47,7 @@ def main(k):
             if abs(new_delta_x - prev_delta_x) > prev_delta_x * 0.02:
                 raise ValueError(f"uh oh, data is not evenly spaced at row {row} and cell {cell}")
             prev_delta_x = new_delta_x
-                
-            
+
         if row == 0:
             prev_avg_delta_x = prev_delta_x
             continue
@@ -54,53 +55,10 @@ def main(k):
         if abs(prev_delta_x - prev_avg_delta_x) > prev_avg_delta_x * 0.02:
             raise ValueError(f"uh oh, data is not evenly spaced at row {row} compared to previous rows")
         prev_avg_delta_x = prev_delta_x
-        
 
-    # Now it is confirmed that data is evenly spaced and consistent throughout the whole array
-
-    import sklearn.metrics as skm
-    import tensorflow as tf
-    from sklearn.model_selection import StratifiedKFold, train_test_split
-    from tensorflow import keras
-    from tensorflow.keras import layers
-
-
-    # Creating the CNN architecture - credit: https://github.com/zavalab/ML/blob/master/CNN_Plastic/code/train.py
-    def cnn1d(shape, seed):
-            np.random.seed(seed)
-            if tf.__version__ == '1.14.0':
-                tf.set_random_seed(seed)
-            else:
-                tf.random.set_seed(seed)
-            inputs = layers.Input(shape)
-            x = layers.Conv1D(64, 3, activation='relu')(inputs)
-            x = layers.Conv1D(64, 3, activation='relu')(x)
-            x = layers.MaxPool1D()(x)
-
-            x = layers.Conv1D(64, 3, activation='relu')(x)
-            x = layers.Conv1D(64, 3, activation='relu')(x)
-            x = layers.MaxPool1D()(x)
-
-            x = layers.Flatten()(x)
-            x = layers.Dense(64, activation='relu')(x)
-            x = layers.Dropout(0.2)(x)
-            x = layers.Dense(64, activation='relu')(x)
-            x = layers.Dropout(0.2)(x)
-            x = layers.Dense(64, activation='relu')(x)
-            x = layers.Dropout(0.2)(x)
-
-            outputs = layers.Dense(6, activation='softmax')(x)
-            model = keras.Model(inputs, outputs, name="fcnn")
-            return model
-
-    """ 
-    Next we convert the labels to integers according to:
-    0: HDPE
-    1: LDPE
-    2: PP
-    3: PS
-    4: PVC
-    5: PET
+    """
+    Convert string labels to integers:
+    0: HDPE  1: LDPE  2: PP  3: PS  4: PVC  5: PET
     """
     label_to_int = {
         'HDPE': 0,
@@ -125,10 +83,14 @@ def main(k):
             label = "PVC"
         elif label.startswith("PET"):
             label = "PET"
-        data[i] = (label_to_int[label], np.array([data[i][k] for k in range(1, len(data[i]), 2)], dtype=np.float64), np.array([data[i][k] for k in range(2, len(data[i]), 2)], dtype=np.float64))
+        # Each row becomes (label_int, wavenumbers[], absorbance[]) — odd indices are wavenumber, even are absorbance
+        data[i] = (
+            label_to_int[label],
+            np.array([data[i][j] for j in range(1, len(data[i]), 2)], dtype=np.float64),
+            np.array([data[i][j] for j in range(2, len(data[i]), 2)], dtype=np.float64)
+        )
 
-
-    # Then we normalize the absorbance data to a range between 0 and 1 and drop the x values since they are the same for all spectra
+    # Normalise absorbance per spectrum to [0, 1] and drop wavenumber axis (identical across all spectra)
     absorbance_values = [(row[2] - np.min(row[2])) / (np.max(row[2]) - np.min(row[2])) for row in data]
     labels = np.array([row[0] for row in data])
 
@@ -136,27 +98,57 @@ def main(k):
         if len(absorbance_values[i]) != 1868:
             raise ValueError(f"uh oh, data at row {i} has {len(absorbance_values[i])} points instead of 1868")
 
-    # Now the shape is 6000, 1868
+    # Shape is now (6000, 1868)
 
-    # Shuffle the data
+    # Shuffle with a fixed seed for reproducibility
     absorbance_values = np.random.RandomState(0).permutation(np.array(absorbance_values))
     labels = np.random.RandomState(0).permutation(labels)
 
-    # Add "channels" dimension for CNN - keras Conv1D expects a 3D input of (samples, timesteps, channels)
+    # Add channel dimension — Conv1D expects (samples, timesteps, channels)
     absorbance_values = absorbance_values[..., np.newaxis]
 
-    # Next we split into train, validation, and test sets
+    return absorbance_values, labels
 
-    # Using StratifiedKFold ensures that each class (type of plastic) is represented roughly equally in each fold
-    # Since n_splits=5, we will have 5 folds, where one fold is used for testing and others for training in each iteration
+
+def main(k, absorbance_values, labels):
+
+    # Two conv blocks (each: Conv1D → Conv1D → MaxPool) followed by three dense layers with dropout
+    # Credit: https://github.com/zavalab/ML/blob/master/CNN_Plastic/code/train.py
+    def cnn1d(shape, seed):
+        np.random.seed(seed)
+        if tf.__version__ == '1.14.0':
+            tf.set_random_seed(seed)
+        else:
+            tf.random.set_seed(seed)
+        inputs = layers.Input(shape)
+        x = layers.Conv1D(64, 3, activation='relu')(inputs)
+        x = layers.Conv1D(64, 3, activation='relu')(x)
+        x = layers.MaxPool1D()(x)
+
+        x = layers.Conv1D(64, 3, activation='relu')(x)
+        x = layers.Conv1D(64, 3, activation='relu')(x)
+        x = layers.MaxPool1D()(x)
+
+        x = layers.Flatten()(x)
+        x = layers.Dense(64, activation='relu')(x)
+        x = layers.Dropout(0.2)(x)
+        x = layers.Dense(64, activation='relu')(x)
+        x = layers.Dropout(0.2)(x)
+        x = layers.Dense(64, activation='relu')(x)
+        x = layers.Dropout(0.2)(x)
+
+        outputs = layers.Dense(6, activation='softmax')(x)
+        model = keras.Model(inputs, outputs, name="fcnn")
+        return model
+
+    # Select the k-th fold as test set; remaining 80% is split 70/30 into train/validation
+    # StratifiedKFold preserves class proportions across folds
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
     i = 0
     for train_index, test_index in skf.split(absorbance_values, labels):
         absorbance_train_fold, absorbance_test = absorbance_values[train_index], absorbance_values[test_index]
         labels_train_fold, labels_test = labels[train_index], labels[test_index]
-        
-        # Then we split training and validation sets using train_test_split - I didn't look into how this specifically works but I trust
-        # that it does the job. Gives 30% for validation and 70% for training of the remaining 80% after the test fold is taken out
+
         absorbance_train_fold, absorbance_valid_fold, labels_train_fold, labels_valid_fold = train_test_split(
             absorbance_train_fold, labels_train_fold, random_state=0, test_size=0.3)
 
@@ -165,52 +157,42 @@ def main(k):
             print(f"This is fold {i}.")
             break
 
-    # Finally we create and compile the CNN model and set up early stopping, which stops training if the model stop improving
-
     model = cnn1d(
-        shape=(
-            absorbance_train_fold.shape[1],
-            absorbance_train_fold.shape[2]),
+        shape=(absorbance_train_fold.shape[1], absorbance_train_fold.shape[2]),
         seed=0)
 
     optimizer = keras.optimizers.Adam(learning_rate=0.0001)
+    # SparseCategoricalCrossentropy accepts integer labels directly — no one-hot encoding needed
     model.compile(
-        loss="categorical_crossentropy",
+        loss="sparse_categorical_crossentropy",
         optimizer=optimizer,
         metrics=["acc"])
 
     early_stopping_cb = keras.callbacks.EarlyStopping(
         monitor="val_loss", patience=100, mode="min", restore_best_weights=True)
 
-    # Then we train the model
-
     hist = model.fit(
         absorbance_train_fold,
-        keras.utils.to_categorical(
-            labels_train_fold,
-            num_classes=6),
-        validation_data=(
-            absorbance_valid_fold,
-            keras.utils.to_categorical(
-                labels_valid_fold,
-                num_classes=6)),
+        labels_train_fold,
+        validation_data=(absorbance_valid_fold, labels_valid_fold),
         epochs=1000,
         shuffle=True,
         verbose=0,
         batch_size=64,
-        callbacks=[
-            early_stopping_cb])
+        callbacks=[early_stopping_cb])
 
-    # Create predictions
     y_pred = np.argmax(model.predict(absorbance_test), axis=1)
 
-    # Compare to test labels
-    print(skm.accuracy_score(labels_test, y_pred))
-
-    # View history
+    print(f"Fold {k} accuracy: {skm.accuracy_score(labels_test, y_pred):.4f}")
     print(hist.history)
 
+    save_dir = Path("output")
+    save_dir.mkdir(exist_ok=True)
+    model.save(save_dir / f"fold_{k}.keras")
+    print(f"Model saved to {save_dir / f'fold_{k}.keras'}")
+
+
 if __name__ == "__main__":
-    k_vals = [1, 2, 3, 4, 5]
-    for k in k_vals:
-        main(k)
+    absorbance_values, labels = load_and_preprocess()
+    for k in [1]:
+        main(k, absorbance_values, labels) #, 2, 3, 4, 5]: I will run each fold separately to avoid GPU memory issues if you have big boy computer
