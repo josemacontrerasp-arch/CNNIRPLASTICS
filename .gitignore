@@ -1,5 +1,4 @@
 spectro_env/
-predict.py
 __pycache__/
 *.pyc
 .claude/

@@ -12,8 +12,8 @@ from tensorflow.keras import layers
 
 
 def load_and_preprocess():
-    dbs1_path = r"data\FTIR_PLASTIC_c4.csv"
-    dbs2_path = r"data\FTIR_PLASTIC_c8.csv"
+    dbs1_path = r"data\processed\FTIR_PLASTIC_c4.csv"
+    dbs2_path = r"data\processed\FTIR_PLASTIC_c8.csv"
     data = []
 
     # Extract each row, keeping only the label, wavenumber (x), and absorbance (y) columns
@@ -186,13 +186,13 @@ def main(k, absorbance_values, labels):
     print(f"Fold {k} accuracy: {skm.accuracy_score(labels_test, y_pred):.4f}")
     print(hist.history)
 
-    save_dir = Path("output")
-    save_dir.mkdir(exist_ok=True)
+    save_dir = Path("output/models")
+    save_dir.mkdir(parents=True, exist_ok=True)
     model.save(save_dir / f"fold_{k}.keras")
     print(f"Model saved to {save_dir / f'fold_{k}.keras'}")
 
 
 if __name__ == "__main__":
     absorbance_values, labels = load_and_preprocess()
-    for k in [1]:
+    for k in [4, 5]:
         main(k, absorbance_values, labels) #, 2, 3, 4, 5]: I will run each fold separately to avoid GPU memory issues if you have big boy computer

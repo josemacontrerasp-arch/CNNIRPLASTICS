@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 import numpy as np
 
 try:
@@ -10,11 +15,14 @@ except ModuleNotFoundError:
     layers = None
 
 
-from models.gaf_transform import stack_gaf_channels, transform_batch
+from src.utils.gaf_transform import stack_gaf_channels, transform_batch
+
+# Default save location for the preprocessed GAF dataset
+_DEFAULT_SAVE_DIR = Path("data/processed")
 
 
 def _load_normalized_spectra():
-    from models.cnn_model_draft import load_and_preprocess
+    from src.training.train_keras_1d import load_and_preprocess
 
     absorbance_values, labels = load_and_preprocess()
     spectra = np.squeeze(absorbance_values, axis=-1)
@@ -85,6 +93,63 @@ def resize_gaf_batch(gaf_images, target_shape):
     resized = tf.image.resize(gaf_images, target_shape, method="bilinear")
     return resized.numpy()
 
+
+def save_gaf_dataset(gaf_images, labels, target_shape, save_dir=None):
+    """
+    Save a GAF dataset to a compressed .npz file in the data folder.
+
+    The filename encodes the spatial resolution, e.g. gaf_64x64.npz,
+    so different resolutions can coexist without overwriting each other.
+
+    Parameters
+    ----------
+    gaf_images:
+        Array with shape (samples, height, width, channels).
+    labels:
+        Integer label array with shape (samples,).
+    target_shape:
+        (height, width) tuple used when generating the images — embedded
+        in the filename for traceability.
+    save_dir:
+        Directory to write the file into. Defaults to data/processed/.
+    """
+    save_dir = Path(save_dir) if save_dir is not None else _DEFAULT_SAVE_DIR
+    save_dir.mkdir(parents=True, exist_ok=True)
+    h, w = target_shape
+    out_path = save_dir / f"gaf_{h}x{w}.npz"
+    np.savez_compressed(out_path, gaf_images=gaf_images, labels=labels)
+    print(f"GAF dataset saved to {out_path}  shape={gaf_images.shape}")
+    return out_path
+
+
+def load_gaf_dataset(target_shape, save_dir=None):
+    """
+    Load a previously saved GAF dataset from the data folder.
+
+    Parameters
+    ----------
+    target_shape:
+        (height, width) tuple — must match the resolution the file was
+        saved with.
+    save_dir:
+        Directory to search. Defaults to data/processed/.
+
+    Returns
+    -------
+    gaf_images, labels  or raises FileNotFoundError.
+    """
+    save_dir = Path(save_dir) if save_dir is not None else _DEFAULT_SAVE_DIR
+    h, w = target_shape
+    path = save_dir / f"gaf_{h}x{w}.npz"
+    if not path.exists():
+        raise FileNotFoundError(f"No saved GAF dataset found at {path}. Run gaf_2d_pipeline.py to generate it.")
+    data = np.load(path)
+    gaf_images = data["gaf_images"]
+    labels = data["labels"]
+    print(f"GAF dataset loaded from {path}  shape={gaf_images.shape}")
+    return gaf_images, labels
+
+
 def build_2d_cnn(input_shape, num_classes=6, seed=0):
     """
     Build a small 2D CNN for GAF images.
@@ -113,3 +178,22 @@ def build_2d_cnn(input_shape, num_classes=6, seed=0):
     outputs = layers.Dense(num_classes, activation="softmax")(x)
 
     return keras.Model(inputs, outputs, name="gaf_cnn")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate and save GAF dataset to data/processed/")
+    parser.add_argument("--size", type=int, default=64,
+                        help="Square GAF image resolution (default: 64)")
+    parser.add_argument("--save-dir", type=str, default=None,
+                        help="Override the output directory (default: data/processed/)")
+    args = parser.parse_args()
+
+    target_shape = (args.size, args.size)
+    print(f"Building GAF dataset at {args.size}x{args.size} — this may take a few minutes...")
+    gaf_images, labels = prepare_gaf_dataset(
+        max_samples=None,
+        target_shape=target_shape,
+    )
+    save_gaf_dataset(gaf_images, labels, target_shape=target_shape, save_dir=args.save_dir)

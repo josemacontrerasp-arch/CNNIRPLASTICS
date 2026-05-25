@@ -1,6 +1,0 @@
-I augmented the data format to shape 1868 absorbance values - didn't use Henry's latest data with everything in it just to get started
-The data format augmentation is extremely ugly right now, I just wanted to get it working so I could see that the CNN is started off properly. Will definitely need to be cleaned up later.
-
-The stratified k fold is a strategy to evaluate the performance of an architecture. When we eventually just train the best model we can, we will not use it. It is used to train the model on 5 necessarily NOT overlapping subsets of the dataset. If we would accidentally train the model on a coincidentally good dataset for a given test set, and be very pleased with our accuracy, it would be misleading. Training separately with a fresh new model (using the same architecture) 5 different times allows us to compare the learning of the model. Lets use it in the beginning of our project, at least thats my suggestion.
-
-I'm available tomorrow (Monday 18.5) until around 2 ish, if u wanna contact me pls do it before then. Otherwise i will respond during my break time at work.
