@@ -1,0 +1,9 @@
+Random Forest 5-Fold Stratified Cross-Validation Summary
+=====================================================
+Fold 1 Accuracy: 1.0000
+Fold 2 Accuracy: 0.9958
+Fold 3 Accuracy: 1.0000
+Fold 4 Accuracy: 0.9975
+Fold 5 Accuracy: 0.9983
+
+Mean Accuracy: 0.9983 (+/- 0.0016)
