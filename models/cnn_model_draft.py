@@ -12,8 +12,10 @@ from tensorflow.keras import layers
 
 
 def load_and_preprocess():
-    dbs1_path = r"data\FTIR_PLASTIC_c4.csv"
-    dbs2_path = r"data\FTIR_PLASTIC_c8.csv"
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    dbs1_path = BASE_DIR / "data" / "FTIR_PLASTIC_c4.csv"
+    dbs2_path = BASE_DIR / "data" / "FTIR_PLASTIC_c8.csv"
     data = []
 
     # Extract each row, keeping only the label, wavenumber (x), and absorbance (y) columns
