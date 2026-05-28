@@ -1,21 +1,11 @@
-import csv
+import sys
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def load_wavenumbers():
-    dbs2_path = Path("data") / "FTIR_PLASTIC_c8.csv"
-    with open(dbs2_path, newline="", encoding="utf-8") as dbs:
-        dbs_reader = csv.reader(dbs)
-        dbs_reader.__next__()  # skip header
-        first_row = dbs_reader.__next__()
-        
-        # Wavenumbers start at index 6 and alternate:
-        # 6, 8, 10, etc. are wavenumbers (x); 7, 9, 11, etc. are intensities (y)
-        data_slice = first_row[6:len(first_row) - 2]
-        wavenumbers = [float(data_slice[j]) for j in range(0, len(data_slice), 2)]
-        return np.array(wavenumbers)
+# Ensure we can import from the project root
+sys.path.append(str(Path(__file__).parent.parent))
+from data.format_data import PlasticIRDataset
 
 
 def main():
@@ -24,9 +14,23 @@ def main():
         print(f"Error: {importances_path} not found. Please run models/rf_model.py first.")
         return
 
-    print("Loading feature importances and wavenumbers...")
+    print("Initializing and loading PlasticIRDataset for wavenumbers...")
+    # Instantiate dataset with path prefixes relative to root directory
+    ds = PlasticIRDataset(
+        ftir_c4_path="data/FTIR_PLASTIC_c4.csv",
+        ftir_c8_path="data/FTIR_PLASTIC_c8.csv",
+        openspecy_dataset_path="data/openspecy_polymer_dataset.csv",
+        openspecy_metadata_path="data/openspecy_polymer_metadata.csv",
+        openspecy_wavenumbers_path="data/openspecy_wavenumbers.csv"
+    )
+    
+    # Process and align all datasets onto a single wavenumber grid
+    ds.process()
+    _, target_wavenumbers = ds.get_formatted_data()
+
+    print("Loading feature importances...")
     importances = np.load(importances_path)
-    wavenumbers = load_wavenumbers()
+    wavenumbers = target_wavenumbers
 
     if len(importances) != len(wavenumbers):
         print(f"Warning: size mismatch! Importances count: {len(importances)}, Wavenumbers count: {len(wavenumbers)}")
@@ -48,8 +52,8 @@ def main():
     # Save textual summary
     summary_path = Path("output") / "rf_importance_analysis.txt"
     with open(summary_path, "w", encoding="utf-8") as f:
-        f.write("Random Forest Feature Importance Analysis\n")
-        f.write("=========================================\n\n")
+        f.write("Random Forest Feature Importance Analysis (Full Dataset)\n")
+        f.write("========================================================\n\n")
         f.write("Top 50 Wavenumbers by Gini Importance:\n\n")
         f.write(f"{'Rank':<6}{'Wavenumber (cm-1)':<20}{'Gini Importance':<15}\n")
         for rank, (wn, imp) in enumerate(features_sorted[:50], 1):
@@ -61,7 +65,7 @@ def main():
     plt.figure(figsize=(12, 6))
     
     # Standard FTIR spectra plots have inverted X-axis (4000 down to 400 cm-1)
-    plt.plot(wavenumbers, importances, color="#1f77b4", linewidth=1.5, label="Gini Importance")
+    plt.plot(wavenumbers, importances, color="#2ca02c", linewidth=1.5, label="Gini Importance")
     plt.gca().invert_xaxis()
     
     # Label the top 5 wavenumbers directly on the plot
@@ -71,7 +75,7 @@ def main():
                  rotation=90, verticalalignment='bottom', horizontalalignment='center',
                  fontsize=8, color="red", alpha=0.8)
 
-    plt.title("Random Forest Feature Importance across FTIR Spectrum", fontsize=14, fontweight="bold", pad=15)
+    plt.title("Random Forest Feature Importance across FTIR Spectrum (Full Dataset)", fontsize=14, fontweight="bold", pad=15)
     plt.xlabel("Wavenumber (cm-1)", fontsize=12)
     plt.ylabel("Gini Importance Score", fontsize=12)
     plt.grid(True, linestyle=":", alpha=0.6)

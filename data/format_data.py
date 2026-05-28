@@ -209,9 +209,9 @@ class PlasticIRDataset:
         target = coarsest_wn[mask]
 
         print(f"\nTarget wavenumber grid decision:")
-        print(f"  Shared range:      {shared_min:.1f} – {shared_max:.1f} cm⁻¹")
+        print(f"  Shared range:      {shared_min:.1f} - {shared_max:.1f} cm-1")
         print(f"  Reference dataset: '{coarsest_key}'"
-              f"  (step ≈ {stats[coarsest_key]['mean_step']:.2f} cm⁻¹)")
+              f"  (step ~ {stats[coarsest_key]['mean_step']:.2f} cm-1)")
         print(f"  Grid points:       {len(target)}")
 
         return target
@@ -246,11 +246,11 @@ class PlasticIRDataset:
         """
         if self._raw_loaded:
             return
-        print("Loading FTIR c4 …")
+        print("Loading FTIR c4 ...")
         self._load_ftir(self.ftir_c4_path, "ftir_c4")
-        print("Loading FTIR c8 …")
+        print("Loading FTIR c8 ...")
         self._load_ftir(self.ftir_c8_path, "ftir_c8")
-        print("Loading OpenSpecy …")
+        print("Loading OpenSpecy ...")
         self._load_openspecy()
         self._raw_loaded = True
         dropped = self._raw_data["openspecy"]["n_raman_dropped"]
@@ -272,23 +272,23 @@ class PlasticIRDataset:
         self.load_raw()
 
         # Step 2
-        print("\nAnalysing datasets …")
+        print("\nAnalysing datasets ...")
         for key in self._raw_data:
             self._dataset_stats[key] = self._analyze_dataset(key)
             s = self._dataset_stats[key]
             print(
                 f"  {key:<12s}  {s['n_spectra']:5d} spectra  "
                 f"{s['n_points']:5d} pts  "
-                f"range {s['wn_min']:.0f}–{s['wn_max']:.0f} cm⁻¹  "
-                f"step ≈ {s['mean_step']:.2f} cm⁻¹"
-                + (f"  wn-jitter ≈ {s['wn_jitter']:.4f}" if s["wn_jitter"] > 0 else "")
+                f"range {s['wn_min']:.0f}-{s['wn_max']:.0f} cm-1  "
+                f"step ~ {s['mean_step']:.2f} cm-1"
+                + (f"  wn-jitter ~ {s['wn_jitter']:.4f}" if s["wn_jitter"] > 0 else "")
             )
 
         # Step 3
         self.target_wavenumbers = self._decide_target_wavenumbers()
 
         # Steps 4 + 5
-        print("\nAligning spectra …")
+        print("\nAligning spectra ...")
         self.formatted_data = []
 
         for key in self._raw_data:
@@ -309,7 +309,7 @@ class PlasticIRDataset:
                 })
 
         # Summary
-        print(f"\nProcessing complete — {len(self.formatted_data)} spectra total")
+        print(f"\nProcessing complete - {len(self.formatted_data)} spectra total")
         label_counts: dict = {}
         for entry in self.formatted_data:
             label_counts[entry["label"]] = label_counts.get(entry["label"], 0) + 1
