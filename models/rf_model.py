@@ -6,19 +6,31 @@ import sklearn.metrics as skm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 
-# Ensure we can import from models
+# Ensure we can import from the project root
 sys.path.append(str(Path(__file__).parent.parent))
-from models.cnn_model_draft import load_and_preprocess
+from data.format_data import PlasticIRDataset
+from preprocess import preprocess, PreprocessConfig
 
 
 def main():
     print("Loading and preprocessing data...")
-    # load_and_preprocess returns absorbance_values: (6000, 1868, 1) and labels: (6000,)
-    absorbance_values, labels = load_and_preprocess()
-    
-    # Flatten the channel dimension for tabular Random Forest: shape (6000, 1868)
-    X = np.squeeze(absorbance_values, axis=-1)
-    y = labels
+    # Extract + align all spectra onto the shared wavenumber grid (format_data.py),
+    # then apply the same per-spectrum, leakage-free preprocessing used in the
+    # CNN pipeline.  X is already 2-D (n_spectra, n_points) -- no channel axis to
+    # strip, since Random Forest works directly on the flat spectra.
+    data_dir = Path(__file__).parent.parent / "data"
+    ds = PlasticIRDataset(
+        ftir_c4_path=str(data_dir / "FTIR_PLASTIC_c4.csv"),
+        ftir_c8_path=str(data_dir / "FTIR_PLASTIC_c8.csv"),
+        openspecy_dataset_path=str(data_dir / "openspecy_polymer_dataset.csv"),
+        openspecy_metadata_path=str(data_dir / "openspecy_polymer_metadata.csv"),
+        openspecy_wavenumbers_path=str(data_dir / "openspecy_wavenumbers.csv"),
+    )
+    ds.process()
+    formatted, wn = ds.get_formatted_data()
+    X = np.array([e["intensities"] for e in formatted], dtype=float)
+    y = np.array([e["label_int"] for e in formatted], dtype=int)
+    X = preprocess(X, PreprocessConfig(normalize="minmax"), wavenumbers=wn)[0]
     
     print(f"Data shape for Random Forest: {X.shape}")
     print(f"Labels shape: {y.shape}")
