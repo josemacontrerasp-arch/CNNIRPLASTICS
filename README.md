@@ -143,23 +143,95 @@ The exact interpretation depends on the original acquisition setup.
 
 ---
 
-# Recommended Usage
+## 3. Functional Requirements
 
-## OpenSpecy Dataset
+### 3.1 Spectral Input Processing
 
-Advantages:
-- large dataset size
-- real-world variability
-- multiple acquisition conditions
+The system shall:
+
+* Accept FTIR spectral data as input.
+* Preprocess spectra into a standardized format suitable for machine learning.
+* Normalize absorbance values before classification.
 
 ---
 
-## FTIR_PLASTIC Datasets
+### 3.2 Plastic Classification
 
-Advantages:
-- balanced classes
-- cleaner formatting
-- standardized acquisition
+The system shall:
+
+* Predict the plastic category from a given infrared spectrum.
+* Support classification into the six defined plastic classes.
+* Output the predicted class and confidence score.
+
+---
+
+### 3.3 Machine Learning Models
+
+The project shall implement and evaluate:
+
+* A 1D Convolutional Neural Network (1D-CNN)
+* A Random Forest classifier
+
+The models shall be compared using:
+
+* Classification accuracy
+* Inference speed
+* Robustness
+* Suitability for real-time deployment
+
+---
+
+### 3.4 Model Persistence
+
+The system shall:
+
+* Save trained models to disk.
+* Reload trained models for future inference without retraining.
+
+---
+
+### 3.5 Evaluation
+
+The system shall:
+
+* Evaluate models using validation and test datasets.
+* Produce accuracy metrics and classification reports.
+* Support single-sample testing for inference verification.
+
+---
+
+# 4. Non-Functional Requirements
+
+### 4.1 Accuracy
+
+The classifier should achieve high classification accuracy across all supported plastic categories.
+
+(Done) Current experimental results using the 1D-CNN model have achieved near-perfect classification performance on the available dataset.
+
+---
+
+### 4.2 Performance
+
+The system should support fast inference suitable for real-time or near real-time recycling machine operation.
+
+(Need improvement) Inference time should remain sufficiently low to support conveyor-belt-based plastic sorting systems.
+
+---
+
+### 4.3 Scalability (maybe)
+
+The architecture should support:
+
+* Addition of new plastic classes
+* Integration of future datasets
+* Deployment to embedded or edge-computing systems
+
+---
+
+### 4.4 Reliability (more tests needed)
+
+The system should maintain stable predictions under repeated testing and varying spectra conditions.
+
 
 ---
 
