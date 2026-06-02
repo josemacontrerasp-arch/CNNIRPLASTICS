@@ -7,6 +7,8 @@
 #   PVC
 #   PP
 #   PS
+#   PLA   (bioplastic)
+#   PHA   (bioplastic; includes PHB / PHBV variants)
 
 # From OpenSpecy raw spectral library
 
@@ -94,6 +96,33 @@ target_polymers <- list(
   PS = c(
     "polystyrene",
     "ps"
+  ),
+
+  # --- Bioplastics ---------------------------------------------------
+  # PLA is well represented in the OpenSpecy raw library. PHA/PHB/PHBV
+  # may be sparse -- check the printed `table(selected_labels)` counts
+  # after running; if a class returns only a handful of spectra it will
+  # not train well and needs a second source.
+  PLA = c(
+    "pla",
+    "polylactic acid",
+    "poly\\(lactic acid\\)",
+    "polylactide",
+    "lactic acid",
+    "poly-l-lactic acid",
+    "plla"
+  ),
+
+  PHA = c(
+    "pha",
+    "phb",
+    "phbv",
+    "polyhydroxyalkanoate",
+    "polyhydroxyalkanoates",
+    "polyhydroxybutyrate",
+    "poly\\(hydroxybutyrate\\)",
+    "poly-3-hydroxybutyrate",
+    "polyhydroxybutyrate-co-valerate"
   )
 )
 

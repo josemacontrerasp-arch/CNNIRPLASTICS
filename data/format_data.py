@@ -22,7 +22,13 @@ OPENSPECY_WAVENUMBERS_PATH = "openspecy_wavenumbers.csv"
 # Label definitions
 # -----------------------------------------------------------------
 
-POLYMER_CLASSES = ["HDPE", "LDPE", "PP", "PS", "PVC", "PET"]
+# NOTE: PLA and PHA are bioplastics. They are only populated once the OpenSpecy
+# dataset is regenerated with the extended keyword list in
+# data/data_processing/openspecy_dataset_builder.R (which requires R + a re-download
+# of the raw OpenSpecy library). Until then no training spectrum carries these
+# labels, so they remain empty classes. n_classes is derived from len() of this
+# list everywhere, so adding them here automatically resizes the CNN softmax / RF.
+POLYMER_CLASSES = ["HDPE", "LDPE", "PP", "PS", "PVC", "PET", "PLA", "PHA"]
 LABEL_TO_INT    = {label: i for i, label in enumerate(POLYMER_CLASSES)}
 
 LAB_LABELS = {
