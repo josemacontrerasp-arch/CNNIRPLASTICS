@@ -114,15 +114,11 @@ target_polymers <- list(
   ),
 
   PHA = c(
-    "pha",
     "phb",
-    "phbv",
-    "polyhydroxyalkanoate",
-    "polyhydroxyalkanoates",
     "polyhydroxybutyrate",
-    "poly\\(hydroxybutyrate\\)",
-    "poly-3-hydroxybutyrate",
-    "polyhydroxybutyrate-co-valerate"
+    "polyhydroxybutyric acid",
+    "polyhydroxybutyric_acid",
+    "polyhydroxybut"
   )
 )
 
