@@ -33,7 +33,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import sklearn.metrics as skm
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 
 # Make the loader's cm^-1 prints survive a non-UTF8 console.
@@ -48,6 +47,7 @@ sys.path.append(str(ROOT))
 from data.format_data import PlasticIRDataset, POLYMER_CLASSES
 from preprocess import preprocess, PreprocessConfig
 from models.cnn_model_draft import create_model, train_model, test_model
+from models.rf_model import run_rf_cv
 
 DATA_DIR = ROOT / "data"
 OUTPUT_DIR = ROOT / "output"
@@ -238,84 +238,6 @@ def run_cnn_cv(X, y, X_lab=None, n_folds=N_FOLDS, seed=RANDOM_STATE, save_models
             "fold_acc": fold_acc, "lab_pred": lab_pred, "lab_proba": lab_proba}
 
 
-def run_rf_cv(X, y, X_lab=None, n_folds=N_FOLDS, seed=RANDOM_STATE,
-              n_estimators=100, save_models=True):
-    """Stage 3 (Random Forest): same protocol as run_cnn_cv, for comparison.
-
-    Tabular RF on the flat spectra (no channel axis).  5-fold StratifiedKFold
-    over the same shuffled split; lab spectra (if given) are TEST-ONLY and
-    predicted by averaging predict_proba across the 5 fold models.
-
-    Returns the same dict shape as run_cnn_cv.
-    """
-    import pickle
-
-    rng = np.random.RandomState(seed)
-    perm = rng.permutation(len(y))
-    X, y = X[perm], y[perm]
-
-    if save_models:
-        OUTPUT_DIR.mkdir(exist_ok=True)
-
-    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
-
-    y_true_all, y_pred_all, y_proba_all, fold_acc = [], [], [], []
-    lab_proba_sum = None
-    n_classes = len(POLYMER_CLASSES)
-
-    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
-        print(f"\n--- RF fold {fold}/{n_folds} ---")
-        X_train, X_test = X[train_idx], X[test_idx]
-        y_train, y_test = y[train_idx], y[test_idx]
-
-        # n_estimators=100 is standard and fast; n_jobs=-1 uses all CPU cores.
-        rf = RandomForestClassifier(n_estimators=n_estimators,
-                                    random_state=seed, n_jobs=-1)
-        rf.fit(X_train, y_train)
-
-        y_pred = rf.predict(X_test)
-        # Map predict_proba (ordered by rf.classes_) into the full 0..n_classes-1
-        # column space so probabilities line up with the CNN's softmax columns.
-        proba = np.zeros((len(X_test), n_classes))
-        proba[:, rf.classes_] = rf.predict_proba(X_test)
-
-        acc = skm.accuracy_score(y_test, y_pred)
-        fold_acc.append(acc)
-        print(f"RF fold {fold} accuracy: {acc:.4f}")
-
-        y_true_all.append(y_test)
-        y_pred_all.append(y_pred)
-        y_proba_all.append(proba)
-
-        if X_lab is not None:
-            lab_p = np.zeros((len(X_lab), n_classes))
-            lab_p[:, rf.classes_] = rf.predict_proba(X_lab)
-            lab_proba_sum = lab_p if lab_proba_sum is None else lab_proba_sum + lab_p
-
-        if save_models:
-            path = OUTPUT_DIR / f"rf_fold_{fold}.pkl"
-            with open(path, "wb") as f:
-                pickle.dump(rf, f)
-            print(f"Saved model to {path}")
-
-    y_true = np.concatenate(y_true_all)
-    y_pred = np.concatenate(y_pred_all)
-    y_proba = np.concatenate(y_proba_all)
-
-    print(f"\nRF per-fold accuracy: "
-          + ", ".join(f"{a:.4f}" for a in fold_acc))
-    print(f"RF mean accuracy: {np.mean(fold_acc):.4f} "
-          f"(+/- {np.std(fold_acc):.4f})")
-
-    lab_pred = lab_proba = None
-    if lab_proba_sum is not None:
-        lab_proba = lab_proba_sum / n_folds
-        lab_pred = np.argmax(lab_proba, axis=1)
-
-    return {"y_true": y_true, "y_pred": y_pred, "y_proba": y_proba,
-            "fold_acc": fold_acc, "lab_pred": lab_pred, "lab_proba": lab_proba}
-
-
 # ===========================================================================
 # Stage 4 -- general comparison (model-agnostic)
 # ===========================================================================
@@ -443,7 +365,7 @@ def main():
                                                  model_name="cnn_lab")
 
     # --- Stage 3 + 4: Random Forest -----------------------------------------
-    rf = run_rf_cv(Xp, y, X_lab=Xp_lab)
+    rf = run_rf_cv(Xp, y, X_lab=Xp_lab, output_dir=OUTPUT_DIR)
     results["rf_cv"] = compare_predictions(rf["y_true"], rf["y_pred"],
                                            model_name="rf_cv")
     if Xp_lab is not None:
