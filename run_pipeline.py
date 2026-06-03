@@ -68,10 +68,10 @@ RANDOM_STATE = 0
 #   region      : None|(lo, hi)   keep only this wavenumber window (cm^-1)
 # ===========================================================================
 PREPROCESS_CONFIG = PreprocessConfig(
-    smooth=False,
-    baseline=None,
+    smooth=True,
+    baseline="asls",
     derivative=0,
-    normalize="minmax",   # original CNN used per-spectrum [0,1] scaling
+    normalize="snv",   # original CNN used per-spectrum [0,1] scaling
     region=None,
 )
 # ===========================================================================
