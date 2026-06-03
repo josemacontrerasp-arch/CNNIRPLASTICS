@@ -29,6 +29,16 @@ def _load_normalized_spectra():
     return spectra, labels
 
 
+def _downsample_spectra(spectra, n_points):
+    """Linearly interpolate each spectrum in (samples, timesteps) down to n_points."""
+    x_old = np.linspace(0, 1, spectra.shape[1])
+    x_new = np.linspace(0, 1, n_points)
+    out = np.empty((spectra.shape[0], n_points), dtype=np.float32)
+    for i, s in enumerate(spectra):
+        out[i] = np.interp(x_new, x_old, s)
+    return out
+
+
 def prepare_gaf_dataset(max_samples=64, target_shape=None, spectra=None, labels=None):
     """
     Load the current normalized 1D spectra and convert them to GAF images.
@@ -39,8 +49,11 @@ def prepare_gaf_dataset(max_samples=64, target_shape=None, spectra=None, labels=
         Limit the number of samples converted. Default is 64 so the
         2D pipeline can be tested without exhausting memory.
     target_shape:
-        Optional resize target, e.g. (128, 128). When omitted, the
-        full GAF matrix shape is kept.
+        Optional (height, width) target. The spectra are downsampled to
+        target_shape[0] points *before* computing GAF matrices, so the
+        output is natively that resolution with no post-hoc resize step.
+        When omitted, the full 1868-point GAF is computed (≈84 GB for
+        the full dataset — only use with very small max_samples).
     spectra:
         Optional preloaded 1D spectral batch. If omitted, the function
         will attempt to load the current dataset through the existing
@@ -64,11 +77,15 @@ def prepare_gaf_dataset(max_samples=64, target_shape=None, spectra=None, labels=
         spectra = spectra[:max_samples]
         labels = labels[:max_samples]
 
+    # Downsample before GAF so matrices are natively target_shape sized.
+    # Without this, 6000 samples × 1868² × 4 bytes ≈ 84 GB would be allocated.
+    if target_shape is not None:
+        n = target_shape[0]
+        if n != spectra.shape[1]:
+            spectra = _downsample_spectra(spectra, n)
+
     gasf_batch, gadf_batch = transform_batch(spectra)
     gaf_images = stack_gaf_channels(gasf_batch, gadf_batch)
-
-    if target_shape is not None:
-        gaf_images = resize_gaf_batch(gaf_images, target_shape)
 
     return gaf_images.astype(np.float32), labels
 

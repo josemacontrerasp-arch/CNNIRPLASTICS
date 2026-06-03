@@ -1,0 +1,5 @@
+variant,true_label,pred_1d,conf_1d,time_1d_ms,pred_2d,conf_2d,time_gaf_ms,time_2d_model_ms,time_2d_total_ms
+original,PVC,PVC,1.0000,5.4985,PVC,1.0000,0.2486,5.2015,5.4501
+noisy,PVC,PVC,1.0000,5.2733,PVC,1.0000,0.2395,5.1217,5.3611
+shifted,PVC,PVC,1.0000,5.2996,PVC,1.0000,0.2875,5.0639,5.3515
+corrupted,PVC,PVC,1.0000,4.9620,PVC,1.0000,0.2192,5.3055,5.5247
