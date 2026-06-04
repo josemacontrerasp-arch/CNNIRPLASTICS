@@ -117,8 +117,15 @@ target_polymers <- list(
     "phb",
     "polyhydroxybutyrate",
     "polyhydroxybutyric acid",
-    "polyhydroxybutyric_acid",
-    "polyhydroxybut"
+    "polyhydroxybutyric_acid"
+  ),
+
+  PBAT = c(
+    "pbat"
+  ),
+
+  PBS = c(
+    "pbs"
   )
 )
 
