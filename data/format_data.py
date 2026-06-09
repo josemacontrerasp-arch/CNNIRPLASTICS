@@ -28,7 +28,7 @@ OPENSPECY_WAVENUMBERS_PATH = "openspecy_wavenumbers.csv"
 # of the raw OpenSpecy library). Until then no training spectrum carries these
 # labels, so they remain empty classes. n_classes is derived from len() of this
 # list everywhere, so adding them here automatically resizes the CNN softmax / RF.
-POLYMER_CLASSES = ["HDPE", "LDPE", "PP", "PS", "PVC", "PET", "PLA", "PHA"]
+POLYMER_CLASSES = ["HDPE", "LDPE", "PP", "PS", "PVC", "PET", "PLA", "PHA", "PBS"]
 LABEL_TO_INT    = {label: i for i, label in enumerate(POLYMER_CLASSES)}
 
 LAB_LABELS = {
