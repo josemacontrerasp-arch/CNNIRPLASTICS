@@ -1,0 +1,165 @@
+arm,dataset,file,material,truth,pred,conf
+without_openspecy,FLOPP-e,ABS-1.csv,ABS,OOD,PS,0.7510
+without_openspecy,FLOPP-e,ABS-2.csv,ABS,OOD,PVC,0.8850
+without_openspecy,FLOPP-e,ABS-3.csv,ABS,OOD,PS,0.7220
+without_openspecy,FLOPP-e,EVA-1.csv,EVA,OOD,LDPE,0.3910
+without_openspecy,FLOPP-e,EVA-2.csv,EVA,OOD,PS,0.2520
+without_openspecy,FLOPP-e,EVA-3.csv,EVA,OOD,PVC,0.4470
+without_openspecy,FLOPP-e,EVOH-1.csv,EVOH,OOD,PP,0.3290
+without_openspecy,FLOPP-e,EVOH-2.csv,EVOH,OOD,PP,0.3420
+without_openspecy,FLOPP-e,EVOH-3.csv,EVOH,OOD,PP,0.3340
+without_openspecy,FLOPP-e,EVOH-4.csv,EVOH,OOD,PP,0.3650
+without_openspecy,FLOPP-e,EVOH-5.csv,EVOH,OOD,PP,0.3480
+without_openspecy,FLOPP-e,Nylon-6.csv,Nylon,OOD,HDPE,0.3150
+without_openspecy,FLOPP-e,Nylon-66.csv,Nylon,OOD,PVC,0.3570
+without_openspecy,FLOPP-e,PAN-1.csv,PAN,OOD,PS,0.5760
+without_openspecy,FLOPP-e,PBT-1.csv,PBT,OOD,PET,0.8120
+without_openspecy,FLOPP-e,PC-1.csv,PC,OOD,PS,0.4850
+without_openspecy,FLOPP-e,PE-1.csv,PE,PE,LDPE,0.6180
+without_openspecy,FLOPP-e,PE-10.csv,PE,PE,LDPE,0.6060
+without_openspecy,FLOPP-e,PE-11.csv,PE,PE,LDPE,0.5740
+without_openspecy,FLOPP-e,PE-2.csv,PE,PE,HDPE,0.7320
+without_openspecy,FLOPP-e,PE-3.csv,PE,PE,LDPE,0.6790
+without_openspecy,FLOPP-e,PE-4.csv,PE,PE,LDPE,0.6580
+without_openspecy,FLOPP-e,PE-5.csv,PE,PE,LDPE,0.6690
+without_openspecy,FLOPP-e,PE-6.csv,PE,PE,LDPE,0.6570
+without_openspecy,FLOPP-e,PE-7.csv,PE,PE,LDPE,0.6380
+without_openspecy,FLOPP-e,PE-8.csv,PE,PE,LDPE,0.6510
+without_openspecy,FLOPP-e,PE-9.csv,PE,PE,LDPE,0.6580
+without_openspecy,FLOPP-e,PET-1.csv,PET,PET,PET,0.9890
+without_openspecy,FLOPP-e,PET-2.csv,PET,PET,PET,0.9700
+without_openspecy,FLOPP-e,PET-3.csv,PET,PET,PET,0.8400
+without_openspecy,FLOPP-e,PHB-1.csv,PHB,OOD,PS,0.3640
+without_openspecy,FLOPP-e,PK-1.csv,PK,OOD,PS,0.3010
+without_openspecy,FLOPP-e,PLA-1.csv,PLA,OOD,PET,0.4350
+without_openspecy,FLOPP-e,PMMA-1.csv,PMMA,OOD,PS,0.4320
+without_openspecy,FLOPP-e,PMMA-2.csv,PMMA,OOD,PS,0.5370
+without_openspecy,FLOPP-e,PMMA-3.csv,PMMA,OOD,PS,0.5130
+without_openspecy,FLOPP-e,PMMA-4.csv,PMMA,OOD,PS,0.5580
+without_openspecy,FLOPP-e,PMMA-5.csv,PMMA,OOD,PS,0.5590
+without_openspecy,FLOPP-e,PMMA-6.csv,PMMA,OOD,PS,0.5040
+without_openspecy,FLOPP-e,PP-1.csv,PP,PP,PP,0.6580
+without_openspecy,FLOPP-e,PP-2.csv,PP,PP,PP,0.6030
+without_openspecy,FLOPP-e,PP-3.csv,PP,PP,PP,0.7340
+without_openspecy,FLOPP-e,PP-4.csv,PP,PP,PP,0.6610
+without_openspecy,FLOPP-e,PP-5.csv,PP,PP,PP,0.6850
+without_openspecy,FLOPP-e,PP-6.csv,PP,PP,PP,0.7690
+without_openspecy,FLOPP-e,PP-7.csv,PP,PP,PP,0.7500
+without_openspecy,FLOPP-e,PS-1.csv,PS,PS,PS,0.6640
+without_openspecy,FLOPP-e,PS-2.csv,PS,PS,PVC,0.8590
+without_openspecy,FLOPP-e,PS-3.csv,PS,PS,PS,0.6890
+without_openspecy,FLOPP-e,PS-4.csv,PS,PS,PS,0.8160
+without_openspecy,FLOPP-e,PS-5.csv,PS,PS,PS,0.6110
+without_openspecy,FLOPP-e,PU-1.csv,PU,OOD,PET,0.3900
+without_openspecy,FLOPP-e,PVAc-1.csv,PVAc,OOD,PS,0.3410
+without_openspecy,FLOPP-e,PVC-1.csv,PVC,PVC,PVC,0.5840
+without_openspecy,FLOPP-e,PVC-2.csv,PVC,PVC,PVC,0.5440
+without_openspecy,FLOPP-e,PVOH-1.csv,PVOH,OOD,PET,0.5910
+without_openspecy,FLOPP-e,PVOH-2.csv,PVOH,OOD,PET,0.5930
+without_openspecy,FLOPP-e,PVOH-3.csv,PVOH,OOD,PET,0.6100
+without_openspecy,FLOPP-e,SAN-1.csv,SAN,OOD,PS,0.7130
+without_openspecy,BLoP,Bamboo Bioplastic 1. Brown Straw Fragment.CSV,Bamboo,OOD,PET,0.5250
+without_openspecy,BLoP,Cornstarch Bioplastic 1. White Cutlery Fragment.CSV,Cornstarch,OOD,PP,0.5530
+without_openspecy,BLoP,CPLA Bioplastic 1. White Coffee Cup Lid Fragment.CSV,CPLA,OOD,PET,0.4420
+without_openspecy,BLoP,CPLA Bioplastic 2. White Cutlery Fragment.CSV,CPLA,OOD,PVC,0.4310
+without_openspecy,BLoP,Flaxstic Bioplastic 1. Green Phone Case Fragment.CSV,Flaxstic,OOD,PET,0.5960
+without_openspecy,BLoP,Mater-Bi Bioplastic 1. Green Shopping Bag Film.CSV,Mater-Bi,OOD,PET,0.7050
+without_openspecy,BLoP,Mater-Bi Bioplastic 2. Green Produce Bag Film.CSV,Mater-Bi,OOD,PET,0.5940
+without_openspecy,BLoP,Nature Flex NK Bioplastic 1. Clear Cellophane Bag Film.CSV,Nature Flex NK,OOD,PVC,0.4900
+without_openspecy,BLoP,PHA Bioplastic 1. Blue Straw Fragment.CSV,PHA,OOD,PVC,0.4780
+without_openspecy,BLoP,PHA Bioplastic 2. White Straw Fragment.CSV,PHA,OOD,PS,0.3970
+without_openspecy,BLoP,PLA Bioplastic 1. White Straw Fragment.CSV,PLA,OOD,PET,0.4480
+without_openspecy,BLoP,PLA Bioplastic 10. Brown Straw Fragment.CSV,PLA,OOD,PET,0.5110
+without_openspecy,BLoP,PLA Bioplastic 11. Clear Cold Drink Cup Fragment.CSV,PLA,OOD,PET,0.4160
+without_openspecy,BLoP,PLA Bioplastic 12. White Cutlery Wrapper Fragment.CSV,PLA,OOD,PET,0.5040
+without_openspecy,BLoP,PLA Bioplastic 13. Clear Cup Lid Fragment.CSV,PLA,OOD,PET,0.3970
+without_openspecy,BLoP,PLA Bioplastic 14. Clear Clamshell Container Fragment.CSV,PLA,OOD,PET,0.4060
+without_openspecy,BLoP,PLA Bioplastic 15. White Straw Fragment.CSV,PLA,OOD,PET,0.4720
+without_openspecy,BLoP,PLA Bioplastic 16. White Straw Fragment.CSV,PLA,OOD,PVC,0.3950
+without_openspecy,BLoP,PLA Bioplastic 17. Brown Straw Fragment.CSV,PLA,OOD,PET,0.5190
+without_openspecy,BLoP,PLA Bioplastic 18. Clear Card Wrapper Film.CSV,PLA,OOD,PET,0.3910
+without_openspecy,BLoP,Sugarcane Bioplastic 1. Brown Cutlery Fragment.CSV,Sugarcane,OOD,PVC,0.5210
+without_openspecy,BLoP,Sugarcane Bioplastic 2. Brown Straw Fragment.CSV,Sugarcane,OOD,PS,0.4530
+without_openspecy,BLoP,Sugarcane Bioplastic 3. Brown Straw Fragment.CSV,Sugarcane,OOD,PS,0.3690
+with_openspecy,FLOPP-e,ABS-1.csv,ABS,OOD,PS,0.6980
+with_openspecy,FLOPP-e,ABS-2.csv,ABS,OOD,PS,0.5010
+with_openspecy,FLOPP-e,ABS-3.csv,ABS,OOD,PS,0.7130
+with_openspecy,FLOPP-e,EVA-1.csv,EVA,OOD,HDPE,0.3560
+with_openspecy,FLOPP-e,EVA-2.csv,EVA,OOD,HDPE,0.2550
+with_openspecy,FLOPP-e,EVA-3.csv,EVA,OOD,PVC,0.4020
+with_openspecy,FLOPP-e,EVOH-1.csv,EVOH,OOD,PVC,0.2330
+with_openspecy,FLOPP-e,EVOH-2.csv,EVOH,OOD,PP,0.2730
+with_openspecy,FLOPP-e,EVOH-3.csv,EVOH,OOD,PVC,0.2390
+with_openspecy,FLOPP-e,EVOH-4.csv,EVOH,OOD,PP,0.3090
+with_openspecy,FLOPP-e,EVOH-5.csv,EVOH,OOD,PP,0.3330
+with_openspecy,FLOPP-e,Nylon-6.csv,Nylon,OOD,PS,0.3420
+with_openspecy,FLOPP-e,Nylon-66.csv,Nylon,OOD,PS,0.3260
+with_openspecy,FLOPP-e,PAN-1.csv,PAN,OOD,PS,0.4720
+with_openspecy,FLOPP-e,PBT-1.csv,PBT,OOD,PET,0.7270
+with_openspecy,FLOPP-e,PC-1.csv,PC,OOD,PET,0.2790
+with_openspecy,FLOPP-e,PE-1.csv,PE,PE,LDPE,0.4910
+with_openspecy,FLOPP-e,PE-10.csv,PE,PE,HDPE,0.4800
+with_openspecy,FLOPP-e,PE-11.csv,PE,PE,LDPE,0.4680
+with_openspecy,FLOPP-e,PE-2.csv,PE,PE,HDPE,0.6440
+with_openspecy,FLOPP-e,PE-3.csv,PE,PE,LDPE,0.6460
+with_openspecy,FLOPP-e,PE-4.csv,PE,PE,LDPE,0.6870
+with_openspecy,FLOPP-e,PE-5.csv,PE,PE,LDPE,0.6310
+with_openspecy,FLOPP-e,PE-6.csv,PE,PE,LDPE,0.5180
+with_openspecy,FLOPP-e,PE-7.csv,PE,PE,LDPE,0.5030
+with_openspecy,FLOPP-e,PE-8.csv,PE,PE,LDPE,0.6120
+with_openspecy,FLOPP-e,PE-9.csv,PE,PE,LDPE,0.6620
+with_openspecy,FLOPP-e,PET-1.csv,PET,PET,PET,0.9190
+with_openspecy,FLOPP-e,PET-2.csv,PET,PET,PET,0.9020
+with_openspecy,FLOPP-e,PET-3.csv,PET,PET,PET,0.7490
+with_openspecy,FLOPP-e,PHB-1.csv,PHB,OOD,PS,0.3130
+with_openspecy,FLOPP-e,PK-1.csv,PK,OOD,PS,0.2190
+with_openspecy,FLOPP-e,PLA-1.csv,PLA,OOD,PS,0.2850
+with_openspecy,FLOPP-e,PMMA-1.csv,PMMA,OOD,PS,0.2460
+with_openspecy,FLOPP-e,PMMA-2.csv,PMMA,OOD,PET,0.2420
+with_openspecy,FLOPP-e,PMMA-3.csv,PMMA,OOD,PET,0.2500
+with_openspecy,FLOPP-e,PMMA-4.csv,PMMA,OOD,PET,0.2550
+with_openspecy,FLOPP-e,PMMA-5.csv,PMMA,OOD,PET,0.2540
+with_openspecy,FLOPP-e,PMMA-6.csv,PMMA,OOD,PS,0.2420
+with_openspecy,FLOPP-e,PP-1.csv,PP,PP,PP,0.6940
+with_openspecy,FLOPP-e,PP-2.csv,PP,PP,PP,0.5690
+with_openspecy,FLOPP-e,PP-3.csv,PP,PP,PP,0.7300
+with_openspecy,FLOPP-e,PP-4.csv,PP,PP,PP,0.5520
+with_openspecy,FLOPP-e,PP-5.csv,PP,PP,PP,0.5880
+with_openspecy,FLOPP-e,PP-6.csv,PP,PP,PP,0.6860
+with_openspecy,FLOPP-e,PP-7.csv,PP,PP,PP,0.7360
+with_openspecy,FLOPP-e,PS-1.csv,PS,PS,PS,0.8690
+with_openspecy,FLOPP-e,PS-2.csv,PS,PS,PS,0.7090
+with_openspecy,FLOPP-e,PS-3.csv,PS,PS,PS,0.5660
+with_openspecy,FLOPP-e,PS-4.csv,PS,PS,PS,0.8650
+with_openspecy,FLOPP-e,PS-5.csv,PS,PS,PS,0.5190
+with_openspecy,FLOPP-e,PU-1.csv,PU,OOD,HDPE,0.2450
+with_openspecy,FLOPP-e,PVAc-1.csv,PVAc,OOD,PS,0.2720
+with_openspecy,FLOPP-e,PVC-1.csv,PVC,PVC,PVC,0.3530
+with_openspecy,FLOPP-e,PVC-2.csv,PVC,PVC,PVC,0.3980
+with_openspecy,FLOPP-e,PVOH-1.csv,PVOH,OOD,PET,0.4320
+with_openspecy,FLOPP-e,PVOH-2.csv,PVOH,OOD,PET,0.4070
+with_openspecy,FLOPP-e,PVOH-3.csv,PVOH,OOD,PET,0.4320
+with_openspecy,FLOPP-e,SAN-1.csv,SAN,OOD,PS,0.6450
+with_openspecy,BLoP,Bamboo Bioplastic 1. Brown Straw Fragment.CSV,Bamboo,OOD,PET,0.3560
+with_openspecy,BLoP,Cornstarch Bioplastic 1. White Cutlery Fragment.CSV,Cornstarch,OOD,PP,0.3270
+with_openspecy,BLoP,CPLA Bioplastic 1. White Coffee Cup Lid Fragment.CSV,CPLA,OOD,PET,0.2950
+with_openspecy,BLoP,CPLA Bioplastic 2. White Cutlery Fragment.CSV,CPLA,OOD,PET,0.2790
+with_openspecy,BLoP,Flaxstic Bioplastic 1. Green Phone Case Fragment.CSV,Flaxstic,OOD,PET,0.3520
+with_openspecy,BLoP,Mater-Bi Bioplastic 1. Green Shopping Bag Film.CSV,Mater-Bi,OOD,PET,0.5460
+with_openspecy,BLoP,Mater-Bi Bioplastic 2. Green Produce Bag Film.CSV,Mater-Bi,OOD,PET,0.5210
+with_openspecy,BLoP,Nature Flex NK Bioplastic 1. Clear Cellophane Bag Film.CSV,Nature Flex NK,OOD,PET,0.2940
+with_openspecy,BLoP,PHA Bioplastic 1. Blue Straw Fragment.CSV,PHA,OOD,PS,0.4300
+with_openspecy,BLoP,PHA Bioplastic 2. White Straw Fragment.CSV,PHA,OOD,PET,0.3090
+with_openspecy,BLoP,PLA Bioplastic 1. White Straw Fragment.CSV,PLA,OOD,PET,0.3570
+with_openspecy,BLoP,PLA Bioplastic 10. Brown Straw Fragment.CSV,PLA,OOD,PET,0.4340
+with_openspecy,BLoP,PLA Bioplastic 11. Clear Cold Drink Cup Fragment.CSV,PLA,OOD,PET,0.2820
+with_openspecy,BLoP,PLA Bioplastic 12. White Cutlery Wrapper Fragment.CSV,PLA,OOD,PET,0.3520
+with_openspecy,BLoP,PLA Bioplastic 13. Clear Cup Lid Fragment.CSV,PLA,OOD,PET,0.2800
+with_openspecy,BLoP,PLA Bioplastic 14. Clear Clamshell Container Fragment.CSV,PLA,OOD,PET,0.2930
+with_openspecy,BLoP,PLA Bioplastic 15. White Straw Fragment.CSV,PLA,OOD,PET,0.3830
+with_openspecy,BLoP,PLA Bioplastic 16. White Straw Fragment.CSV,PLA,OOD,PS,0.2970
+with_openspecy,BLoP,PLA Bioplastic 17. Brown Straw Fragment.CSV,PLA,OOD,PET,0.3760
+with_openspecy,BLoP,PLA Bioplastic 18. Clear Card Wrapper Film.CSV,PLA,OOD,PET,0.2880
+with_openspecy,BLoP,Sugarcane Bioplastic 1. Brown Cutlery Fragment.CSV,Sugarcane,OOD,PET,0.2910
+with_openspecy,BLoP,Sugarcane Bioplastic 2. Brown Straw Fragment.CSV,Sugarcane,OOD,PET,0.3240
+with_openspecy,BLoP,Sugarcane Bioplastic 3. Brown Straw Fragment.CSV,Sugarcane,OOD,PET,0.2920
