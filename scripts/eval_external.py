@@ -7,14 +7,16 @@ Why this script exists
 The team wants to know how the classifier generalizes to spectra from other
 instruments / labs (FLOPP-e) and to bioplastics that are NOT among the six
 trained classes (BLoP).  This is a pure generalization test: nothing here is
-trained, we only run inference with the existing output/fold_*.keras models.
+trained, we only run inference with the existing output/cnn_fold_*.keras models.
 
-Pipeline (mirrors predict.py / models/cnn_model_draft.py exactly)
------------------------------------------------------------------
+Pipeline
+--------
 1. parse (wavenumber, %T) pairs from each external CSV
-2. interpolate onto the c8 training grid (1868 points, ~399..4000 cm-1)
-3. per-spectrum min-max normalize to [0, 1]   (training was on %T directly)
-4. soft-vote the 4 fold models (average softmax, argmax)
+2. drop exact-zero %T points for BLoP (no-data marker; pre-interpolation
+   data cleaning so they don't corrupt baseline correction)
+3. interpolate onto the shared training grid
+4. apply the pipeline PREPROCESS_CONFIG (same transforms used during training)
+5. soft-vote across all saved cnn_fold_*.keras models (average softmax, argmax)
 
 Important domain notes
 ----------------------
@@ -25,8 +27,8 @@ Important domain notes
   region (rich in discriminative bands) is extrapolated flat. This is a real
   limitation of the source data, reported in the output.
 * BLoP CSVs carry a no-data region at low wavenumbers stored as exact 0 %T.
-  Those points are dropped before interpolation so they do not corrupt the
-  per-spectrum min-max.
+  Those points are dropped before interpolation so they do not corrupt
+  baseline correction (a data-cleaning step, not part of preprocessing).
 * Every BLoP material and several FLOPP-e materials (ABS, EVA, EVOH, Nylon,
   PMMA, PLA, PHB, ...) are OUT-OF-DISTRIBUTION: the 6-class softmax has no
   "unknown" option, so we report what it guesses and how confident it is.
@@ -48,6 +50,12 @@ try:
 except Exception:
     pass
 
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+import preprocess
+from run_pipeline import PREPROCESS_CONFIG
+
+
 # --- Keras compat shim (identical to predict.py) --------------------------
 _UNKNOWN_KWARGS = ("quantization_config",)
 for _cls in (keras.layers.Dense, keras.layers.Conv1D, keras.layers.Conv2D,
@@ -62,8 +70,6 @@ for _cls in (keras.layers.Dense, keras.layers.Conv1D, keras.layers.Conv2D,
         return _patched
     _cls.__init__ = _make()
 # --------------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parent.parent
 INT_TO_LABEL = {0: "HDPE", 1: "LDPE", 2: "PP", 3: "PS", 4: "PVC", 5: "PET"}
 LABEL_TO_INT = {v: k for k, v in INT_TO_LABEL.items()}
 C8_CSV = ROOT / "data" / "FTIR_PLASTIC_c8.csv"
@@ -90,7 +96,7 @@ def get_training_wavenumber_grid():
 
 
 def load_models():
-    paths = sorted(MODELS_DIR.glob("fold_*.keras"))
+    paths = sorted(MODELS_DIR.glob("cnn_fold_*.keras"))
     if not paths:
         sys.exit(f"No fold_*.keras models in {MODELS_DIR}")
     models = [tf.keras.models.load_model(p) for p in paths]
@@ -123,20 +129,32 @@ def _parse_xy_csv(path: Path):
     return np.array(xs), np.array(ys)
 
 
-def preprocess(path: Path, grid: np.ndarray, drop_zero=False):
+def load_and_align(path: Path, grid: np.ndarray, drop_zero=False):
+    """Parse, clean, and interpolate one external CSV onto `grid`.
+
+    drop_zero: BLoP CSVs use exact-0 %T to mark no-data regions at low
+    wavenumbers.  Dropping them before interpolation prevents those zeroes
+    from being treated as real signal and from corrupting baseline correction.
+    This is a data-cleaning step; it happens before preprocessing.
+
+    Returns (x, (wn_lo, wn_hi)) where x has shape (1, len(grid), 1),
+    preprocessed identically to the training data via PREPROCESS_CONFIG.
+
+    NOTE: `grid` must match the input length the saved models expect.
+    Without OpenSpecy that is 1868 pts (c8 native); with OpenSpecy it is
+    ~395 pts.  EXPECTED_LEN at the top of this file reflects this.
+    """
     wn, ity = _parse_xy_csv(path)
     if drop_zero:
-        # BLoP: exact-0 %T marks the low-wavenumber no-data region.
         keep = ity != 0.0
         wn, ity = wn[keep], ity[keep]
     order = np.argsort(wn)
     wn, ity = wn[order], ity[order]
     resampled = np.interp(grid, wn, ity)
-    rng = resampled.max() - resampled.min()
-    if rng == 0:
+    if resampled.max() == resampled.min():
         raise ValueError(f"flat spectrum in {path.name}")
-    normed = (resampled - resampled.min()) / rng
-    return normed[np.newaxis, :, np.newaxis].astype(np.float32), (wn.min(), wn.max())
+    processed = preprocess.preprocess(resampled[np.newaxis, :], PREPROCESS_CONFIG)
+    return processed[..., np.newaxis].astype(np.float32), (wn.min(), wn.max())
 
 
 # ---------------------------------------------------------------- true labels
@@ -165,7 +183,7 @@ def run_dataset(name, folder, glob_pat, material_fn, models, grid, drop_zero):
     print(f"\n=== {name}: {len(files)} spectra ===")
     for path in files:
         try:
-            x, (lo, hi) = preprocess(path, grid, drop_zero=drop_zero)
+            x, (lo, hi) = load_and_align(path, grid, drop_zero=drop_zero)
         except Exception as e:
             print(f"  {path.name:<45} ERROR: {e}")
             continue
@@ -220,7 +238,7 @@ def write_report(rows):
 
     md = []
     md.append("# External-Dataset Generalization Test\n")
-    md.append("Soft-vote ensemble of `output/fold_1.keras` ... `fold_4.keras` "
+    md.append("Soft-vote ensemble of `output/cnn_fold_1.keras` ... `cnn_fold_4.keras` "
               "(average of the 4 softmax outputs, then argmax).\n")
     md.append("Label map: `HDPE=0 LDPE=1 PP=2 PS=3 PVC=4 PET=5`. "
               "The model has **no \"unknown\" class** -- every spectrum is forced "

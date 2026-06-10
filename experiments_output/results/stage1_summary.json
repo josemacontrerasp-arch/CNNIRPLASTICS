@@ -1,0 +1,135 @@
+{
+  "no_os": {
+    "grid": {
+      "n_points": 1868,
+      "wn_min": 399.19270000000006,
+      "wn_max": 3999.640400000001,
+      "median_step": 1.928499999999758
+    },
+    "class_source_counts": {
+      "PET": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      },
+      "HDPE": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      },
+      "PVC": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      },
+      "LDPE": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      },
+      "PP": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      },
+      "PS": {
+        "ftir_c4": 500,
+        "ftir_c8": 500
+      }
+    },
+    "scope_counts": {
+      "HDPE": 1000,
+      "LDPE": 1000,
+      "PET": 1000,
+      "PP": 1000,
+      "PS": 1000,
+      "PVC": 1000
+    },
+    "six_counts": {
+      "HDPE": 1000,
+      "LDPE": 1000,
+      "PP": 1000,
+      "PS": 1000,
+      "PVC": 1000,
+      "PET": 1000
+    },
+    "n_six": 6000,
+    "n_lab": 0
+  },
+  "with_os": {
+    "grid": {
+      "n_points": 395,
+      "wn_min": 804.0,
+      "wn_max": 3168.0,
+      "median_step": 6.0
+    },
+    "class_source_counts": {
+      "PET": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 2189
+      },
+      "HDPE": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 1035
+      },
+      "PVC": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 243
+      },
+      "LDPE": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 842
+      },
+      "PP": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 2371
+      },
+      "PS": {
+        "ftir_c4": 500,
+        "ftir_c8": 500,
+        "openspecy": 1444
+      },
+      "PHA": {
+        "openspecy": 9
+      },
+      "PBS": {
+        "openspecy": 8
+      },
+      "PLA": {
+        "openspecy": 515
+      }
+    },
+    "scope_counts": {
+      "HDPE": 2035,
+      "LDPE": 1842,
+      "PBS": 8,
+      "PET": 3189,
+      "PHA": 9,
+      "PLA": 515,
+      "PP": 3371,
+      "PS": 2444,
+      "PVC": 1243
+    },
+    "six_counts": {
+      "HDPE": 2035,
+      "LDPE": 1842,
+      "PP": 3371,
+      "PS": 2444,
+      "PVC": 1243,
+      "PET": 3189
+    },
+    "n_six": 14124,
+    "n_lab": 39
+  },
+  "grid_collapse": {
+    "points_no_os": 1868,
+    "points_with_os": 395,
+    "pct_points_lost": 78.9,
+    "lost_low_wn_region": [
+      399.0,
+      804.0
+    ],
+    "step_no_os": 1.928499999999758,
+    "step_with_os": 6.0
+  }
+}
