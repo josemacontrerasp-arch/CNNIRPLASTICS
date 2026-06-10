@@ -23,9 +23,6 @@ For every run and BOTH models we emit the brief's deliverables:
   * FLOPP-e in-distribution accuracy
   * BLoP bioplastic over-confidence count (>=90%) -- the CNN-vs-RF safety gap
 Fold models + OOF/external probabilities are saved for Stage 4 to reuse.
-
-Compute knobs (faster than the original epochs=1000/patience=100; the data is
-easy so this barely costs accuracy and saves a lot of time):
 """
 from __future__ import annotations
 
@@ -48,8 +45,10 @@ N_CLASSES = len(C.SIX)
 RUNS = [("no_os", "norm-snv"), ("no_os", "smooth+d1+snv"), ("with_os", "norm-snv")]
 HEADLINE = ("no_os", "norm-snv")
 
-# CNN hyperparameters (tunable per the brief).
-CNN_KW = dict(dropout=0.2, learning_rate=1e-4, batch_size=64,
+# CNN hyperparameters (tunable per the brief). batch_size=128 for GPU throughput
+# (Tesla T4 has headroom); epochs/patience trimmed from the original 1000/100
+# because the data is easily separable, saving a lot of time at ~no accuracy cost.
+CNN_KW = dict(dropout=0.2, learning_rate=1e-4, batch_size=128,
               epochs=300, patience=30, verbose=0)
 
 
@@ -59,7 +58,7 @@ def _prep(X, wn, cfg):
 
 
 def _eval_set(proba_fn, rows, class_names):
-    """Run an ensemble on external/lab rows. Returns pred labels, confs, score."""
+    """Run an ensemble on external/lab rows. Returns pred labels, confs, proba."""
     if not rows:
         return [], np.array([]), None
     X = np.array([r["x_pp"] for r in rows], float)

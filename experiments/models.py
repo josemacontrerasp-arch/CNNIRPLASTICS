@@ -4,6 +4,10 @@ Both produce out-of-fold (OOF) predictions over the training data -- every
 spectrum predicted exactly once by a fold that did not see it -- plus an
 ensemble predict function for scoring held-out external/lab spectra. Keeping the
 output shape identical means metrics.py scores both the same way.
+
+For RF and CNN alike, y_true / y_pred / proba are all returned in the SAME
+shuffled-position order, so they correspond row-for-row (needed for the
+threshold / OOD analysis in stage 4).
 """
 from __future__ import annotations
 
@@ -47,8 +51,6 @@ def rf_cv(X, y, n_classes, n_estimators=200, class_weight=None,
         if keep_forests:
             forests.append(rf)
 
-    # Everything below is in the SAME shuffled-position order, so y_true, y_pred,
-    # and proba correspond row-for-row (needed for the threshold/OOD analysis).
     y_pred = np.argmax(proba, axis=1)
     return dict(y_true=y, y_pred=y_pred, proba=proba, fold_acc=fold_acc,
                 forests=forests, mean_acc=float(np.mean(fold_acc)),
@@ -70,16 +72,21 @@ def rf_ensemble_proba(forests, X_ext, n_classes):
 # 1-D CNN (imported lazily so RF-only stages don't need TensorFlow)
 # --------------------------------------------------------------------------- #
 def cnn_cv(X, y, n_classes, n_folds=C.N_FOLDS, seed=C.SEED,
-           dropout=0.2, learning_rate=1e-4, batch_size=64,
-           epochs=1000, patience=100, save_dir=None, verbose=0):
+           dropout=0.2, learning_rate=1e-4, batch_size=128,
+           epochs=300, patience=30, save_dir=None, verbose=0):
     """Stratified k-fold 1-D CNN. Mirrors rf_cv's return shape.
 
     dropout / learning_rate / batch_size are exposed so stage 3 can tune them
     (the brief explicitly allows this, esp. for robustness). Heavy: GPU advised.
+    Prints per-fold timing + an every-25-epoch heartbeat so long folds are not
+    silent.
     """
+    import time
+
     import tensorflow as tf  # noqa: F401
     from tensorflow import keras
     from tensorflow.keras import layers
+    from sklearn.model_selection import train_test_split
 
     X = np.asarray(X)[..., np.newaxis]
     y = np.asarray(y)
@@ -108,22 +115,42 @@ def cnn_cv(X, y, n_classes, n_folds=C.N_FOLDS, seed=C.SEED,
                   metrics=["acc"])
         return m
 
-    from sklearn.model_selection import StratifiedKFold, train_test_split
+    class _Heartbeat(keras.callbacks.Callback):
+        """Print a progress line every `every` epochs so long folds aren't silent."""
+        def __init__(self, fold, every=25):
+            super().__init__()
+            self.fold, self.every, self.t0 = fold, every, time.time()
+
+        def on_epoch_end(self, epoch, logs=None):
+            if (epoch + 1) % self.every == 0:
+                logs = logs or {}
+                print(f"      fold {self.fold} epoch {epoch + 1:4d}  "
+                      f"val_loss={logs.get('val_loss', float('nan')):.4f}  "
+                      f"val_acc={logs.get('val_acc', float('nan')):.4f}  "
+                      f"[{time.time() - self.t0:.0f}s]", flush=True)
+
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
     fold_acc, models = [], []
     proba = np.zeros((len(y), n_classes))   # shuffled-position space
 
     for k, (tr, te) in enumerate(skf.split(X[:, :, 0], y), 1):
+        t0 = time.time()
+        print(f"    [CNN fold {k}/{n_folds}] training "
+              f"({len(tr)} train spectra)...", flush=True)
         m = build()
         Xtr, Xval, ytr, yval = train_test_split(X[tr], y[tr], test_size=0.3,
                                                 random_state=seed)
         es = keras.callbacks.EarlyStopping(monitor="val_loss", patience=patience,
                                            mode="min", restore_best_weights=True)
-        m.fit(Xtr, ytr, validation_data=(Xval, yval), epochs=epochs,
-              batch_size=batch_size, shuffle=True, verbose=verbose, callbacks=[es])
+        hist = m.fit(Xtr, ytr, validation_data=(Xval, yval), epochs=epochs,
+                     batch_size=batch_size, shuffle=True, verbose=verbose,
+                     callbacks=[es, _Heartbeat(k)])
         proba[te] = m.predict(X[te], verbose=0)
-        fold_acc.append(skm.accuracy_score(y[te], np.argmax(proba[te], axis=1)))
+        fa = skm.accuracy_score(y[te], np.argmax(proba[te], axis=1))
+        fold_acc.append(fa)
         models.append(m)
+        print(f"    [CNN fold {k}/{n_folds}] done: {len(hist.history['loss'])} epochs, "
+              f"test acc {fa:.4f}  [{time.time() - t0:.0f}s]", flush=True)
         if save_dir is not None:
             from pathlib import Path
             Path(save_dir).mkdir(parents=True, exist_ok=True)

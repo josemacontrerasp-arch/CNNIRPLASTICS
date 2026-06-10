@@ -1,0 +1,41 @@
+{
+  "classes": [
+    "HDPE",
+    "LDPE",
+    "PP",
+    "PS",
+    "PVC",
+    "PET"
+  ],
+  "preprocessing": "norm-snv",
+  "grid_points": 1868,
+  "grid_range_cm1": [
+    399.19270000000006,
+    3999.640400000001
+  ],
+  "recommended_model": "random_forest",
+  "random_forest": {
+    "single": "rf_final.pkl",
+    "ensemble": [
+      "rf_fold_1.pkl",
+      "rf_fold_2.pkl",
+      "rf_fold_3.pkl",
+      "rf_fold_4.pkl",
+      "rf_fold_5.pkl"
+    ],
+    "note": "Soft-vote the 5 forests (or use rf_final for a single model). Headline classifier + reject gate."
+  },
+  "cnn": {
+    "ensemble": [
+      "cnn_fold_1.keras",
+      "cnn_fold_2.keras",
+      "cnn_fold_3.keras",
+      "cnn_fold_4.keras",
+      "cnn_fold_5.keras"
+    ],
+    "source_run": "no_os__norm-snv",
+    "note": "5-fold soft-vote ensemble = the deployment CNN. Secondary model; softmax is NOT calibrated for a reject option (AUROC 0.836) -- temperature-scale before using as confidence."
+  },
+  "reject_threshold": 0.89,
+  "reject_rule": "if max RF class probability < 0.89: predict 'UNKNOWN' (not one of the six). Keeps 97.6% of real plastics (100% correct) and rejects 96.5% of OOD."
+}

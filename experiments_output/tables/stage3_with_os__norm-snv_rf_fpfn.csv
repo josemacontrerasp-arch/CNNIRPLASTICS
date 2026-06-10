@@ -1,0 +1,7 @@
+class,support,false_positives,fp_sources,false_negatives,fn_leaks_to
+HDPE,2035,76,"{""LDPE"": 57, ""PP"": 7, ""PET"": 5, ""PS"": 4, ""PVC"": 3}",71,"{""LDPE"": 37, ""PP"": 20, ""PS"": 6, ""PET"": 7, ""PVC"": 1}"
+LDPE,1842,58,"{""HDPE"": 37, ""PS"": 2, ""PET"": 9, ""PP"": 10}",108,"{""PP"": 38, ""HDPE"": 57, ""PS"": 9, ""PVC"": 1, ""PET"": 3}"
+PP,3371,103,"{""HDPE"": 20, ""PS"": 27, ""PET"": 12, ""LDPE"": 38, ""PVC"": 6}",56,"{""PS"": 25, ""PVC"": 3, ""HDPE"": 7, ""PET"": 11, ""LDPE"": 10}"
+PS,2444,72,"{""PET"": 30, ""PP"": 25, ""HDPE"": 6, ""LDPE"": 9, ""PVC"": 2}",49,"{""PET"": 11, ""PP"": 27, ""LDPE"": 2, ""HDPE"": 4, ""PVC"": 5}"
+PVC,1243,14,"{""PP"": 3, ""PET"": 4, ""LDPE"": 1, ""PS"": 5, ""HDPE"": 1}",15,"{""PET"": 4, ""PP"": 6, ""HDPE"": 3, ""PS"": 2}"
+PET,3189,36,"{""PS"": 11, ""PVC"": 4, ""PP"": 11, ""HDPE"": 7, ""LDPE"": 3}",60,"{""PS"": 30, ""PP"": 12, ""PVC"": 4, ""LDPE"": 9, ""HDPE"": 5}"
