@@ -22,13 +22,19 @@
 \maketitle
 
 \begin{abstract}
-This report documents the work performed on 12 June 2026: (1) integration of the
+This report documents the work performed on 12 June 2026, in chronological
+order: (1) two cross-dataset generalization studies carried out before the
+branch merge --- a blind evaluation of the saved CNN ensemble on the public
+FLOPP-e and BLoP reference libraries, and an A/B test of whether including the
+OpenSpecy library helps or hurts external generalization; (2) integration of the
 \texttt{add-cosine-baseline-eval} and the new \texttt{experiments} branches into
 \texttt{external-dataset-eval}, bringing the full staged-experiment pipeline and
-all trained model artifacts into one branch; and (2) a blind test of 30 newly
+all trained model artifacts into one branch; and (3) a blind test of 30 newly
 measured real-world FTIR spectra against \emph{every} trained model family in
 the repository, including per-sample saliency maps (gradient saliency and 1-D
-Grad-CAM) for the deployment CNN ensemble. The deployment configuration
+Grad-CAM) for the deployment CNN ensemble. The early studies motivated the
+six-class reject gate and the bioplastic-class extension that the later test
+exercises. The deployment configuration
 (random-forest soft-vote with a 0.89 reject gate) accepted only 4 of the 30
 samples --- \texttt{ldpewet}$\to$HDPE, \texttt{pvcscrepe}$\to$PVC,
 \texttt{wetcd}$\to$PS --- and rejected every clear non-plastic, while the
@@ -38,9 +44,87 @@ films) on which all four modern model families agreed, suggesting the 0.89
 threshold is conservative for spectra from this instrument.
 \end{abstract}
 
+\section{Cross-dataset generalization (FLOPP-e and BLoP)}
+
+Before any retraining or merging, the saved CNN ensemble that was current at the
+start of the session (\texttt{output/fold\_1..4.keras}, the four
+\emph{pre-OpenSpecy} folds) was evaluated on two public FTIR reference libraries
+it had never seen, to measure transfer to other instruments and to materials
+outside the six trained classes:
+
+\begin{itemize}
+  \item \textbf{FLOPP-e} (figshare 24593022): 59 reference polymer spectra, \%T,
+        $\sim$650--4000\,cm$^{-1}$ at 1\,cm$^{-1}$.
+  \item \textbf{BLoP}: 23 bioplastic spectra (PLA, PHA, CPLA, Bamboo, Sugarcane,
+        Mater-Bi, Cornstarch, Flaxstic, Nature\,Flex), \%T.
+\end{itemize}
+
+Each spectrum was interpolated onto the 1868-point c8 grid, per-spectrum
+min--max normalised on \%T, and soft-voted across the four folds
+(\texttt{scripts/eval\_external.py}). FLOPP-e ``PE'' pellets are counted correct
+as HDPE \emph{or} LDPE, since the source does not split them; BLoP's exact-zero
+low-wavenumber no-data region is dropped before interpolation.
+
+\textbf{In-distribution result.} On the six commodity classes the ensemble
+reached \textbf{96.4\,\% (27/28 gradeable spectra: PE 11/11, PET 3/3, PP 7/7,
+PVC 2/2, PS 4/5)} on a completely different instrument --- strong transfer for
+the clean reference library, in contrast to the messy real lab spectra tested
+later (Section~\ref{sec:results}).
+
+\textbf{Out-of-distribution behaviour.} Of the 54 spectra outside the six
+classes, \textbf{27 were forced into a class at $\geq$90\,\% confidence}: the
+bare softmax gives no novelty signal (PMMA$\to$PS at 100\,\%, ABS$\to$PS/PVC,
+etc.), and the BLoP bioplastics scattered across PS/PET/PVC. These two findings
+directly motivated (a) the explicit \textbf{reject gate} adopted in the
+deployment configuration and (b) the \textbf{bioplastic-class extension}.
+Artifacts: \texttt{results/external/}.
+
+\section{OpenSpecy inclusion: an A/B on generalization}
+
+A second pre-merge study tested the team's hypothesis that the OpenSpecy
+library's coarse 6\,cm$^{-1}$ sampling and its narrowed valid range cost more
+than its extra spectra give. Two Random-Forest arms were built with the
+project's own loader, restricted to the six commodity classes, with identical
+model and identical per-spectrum min--max --- the \emph{only} deliberate
+difference being whether OpenSpecy is included
+(\texttt{scripts/ab\_openspecy.py}).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Metric & without OpenSpecy & with OpenSpecy \\
+\midrule
+Training spectra & 6\,000 & 14\,124 \\
+Grid points & 1\,868 & 395 \\
+Grid range (cm$^{-1}$) & 399--4000 & 804--3168 \\
+CV accuracy (held-out folds) & 99.85\,\% & 97.26\,\% \\
+\textbf{External in-dist (FLOPP-e)} & \textbf{96.4\,\%} (27/28) & \textbf{100\,\%} (28/28) \\
+OOD forced @\,$\geq$90\,\% conf & 0/54 & 0/54 \\
+\bottomrule
+\end{tabular}
+\caption{OpenSpecy A/B (Random Forest, six commodity classes).}
+\label{tab:ab}
+\end{table}
+
+The headline finding is the \textbf{grid collapse}: forcing OpenSpecy in drops
+the shared grid from 1868 points (399--4000\,cm$^{-1}$) to 395 points
+(804--3168\,cm$^{-1}$) --- a $\sim$79\,\% reduction and the loss of the entire
+399--804\,cm$^{-1}$ low-wavenumber fingerprint region. The $+3.6$\,pp external
+gain is a single spectrum out of 28 (within noise), while in-domain CV
+\emph{drops}, as expected for harder mixed data. The practical consequence is
+that the \texttt{experiments} branch keeps \emph{both} configurations as
+separate model families --- the no-OpenSpecy 1868-point \texttt{cnn-d1} and the
+with-OpenSpecy 395-point \texttt{cnn-os} (table~\ref{tab:models}) --- so the
+trade-off can be judged on real data rather than assumed. Separately, the RF
+ensemble never crossed the 90\,\% bar on any OOD spectrum, foreshadowing the
+calibrated reject gate used below. Artifacts: \texttt{results/ab\_openspecy/}.
+
 \section{Branch integration}
 
-The session started by synchronising the local repository with
+After the generalization studies, the session continued by synchronising the
+local repository with
 \texttt{origin}. Two lines contained new work relative to
 \texttt{external-dataset-eval}:
 
@@ -127,6 +211,7 @@ The pipeline implemented in \texttt{scripts/test\_lab\_downloads.py}:
 \end{enumerate}
 
 \section{Results}
+\label{sec:results}
 
 Table~\ref{tab:preds} gives every prediction. The deployment model accepted
 \textbf{4 of 30} samples and declared the remaining 26 UNKNOWN.
@@ -296,10 +381,17 @@ spectrum (folder \texttt{saliency/} next to this report). Figure
         once their ground truth is confirmed.
   \item The legacy \texttt{output/} models should be considered deprecated
         for evaluation purposes.
+  \item The earlier generalization studies underwrite the design tested here:
+        the FLOPP-e/BLoP out-of-distribution over-confidence motivated the reject
+        gate (whose 0.89 threshold was tuned on those same datasets), and the
+        OpenSpecy grid-collapse A/B justifies carrying both the 1868-point
+        \texttt{cnn-d1} and the 395-point \texttt{cnn-os} families forward.
   \item All artifacts are committed on \texttt{external-dataset-eval}
         (\texttt{428a2dc}): the test script
-        \texttt{scripts/test\_lab\_downloads.py}, the prediction tables, and
-        all 30 saliency maps.
+        \texttt{scripts/test\_lab\_downloads.py}, the cross-dataset and A/B
+        scripts (\texttt{scripts/eval\_external.py},
+        \texttt{scripts/ab\_openspecy.py}), the prediction tables, and all 30
+        saliency maps.
 \end{enumerate}
 
 \end{document}
