@@ -111,21 +111,6 @@ target_polymers <- list(
     "lactic acid",
     "poly-l-lactic acid",
     "plla"
-  ),
-
-  PHA = c(
-    "phb",
-    "polyhydroxybutyrate",
-    "polyhydroxybutyric acid",
-    "polyhydroxybutyric_acid"
-  ),
-
-  PBAT = c(
-    "pbat"
-  ),
-
-  PBS = c(
-    "pbs"
   )
 )
 

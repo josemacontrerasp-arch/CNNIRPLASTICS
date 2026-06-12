@@ -285,8 +285,11 @@ def compare_predictions(
     accuracy = skm.accuracy_score(y_true, y_pred)
     macro_f1 = skm.f1_score(y_true, y_pred, labels=labels,
                             average="macro", zero_division=0)
-    per_class = skm.f1_score(y_true, y_pred, labels=labels,
-                             average=None, zero_division=0)
+    # average=None returns one F1 per class as an ndarray.  Wrap in atleast_1d so
+    # static type checkers see an iterable ndarray (not the float|ndarray union
+    # the stubs declare) -- runtime behaviour is unchanged.
+    per_class = np.atleast_1d(skm.f1_score(y_true, y_pred, labels=labels,
+                                           average=None, zero_division=0))
     per_class_f1 = dict(zip(class_names, (float(v) for v in per_class)))
     cm = skm.confusion_matrix(y_true, y_pred, labels=labels)
 
@@ -325,7 +328,7 @@ def _plot_confusion(cm, class_names, title, path):
     thr = cm.max() / 2 if cm.max() else 0.5
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
-            ax.text(j, i, int(cm[i, j]), ha="center", va="center",
+            ax.text(j, i, str(int(cm[i, j])), ha="center", va="center",
                     color="white" if cm[i, j] > thr else "black", fontsize=8)
     fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     fig.tight_layout()

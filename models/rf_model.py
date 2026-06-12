@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 
 def run_rf_cv(X, y, X_lab=None, n_folds=5, seed=0, n_estimators=100,
-              n_classes=6, save_models=True, save_importances=True,
+              n_classes=7, save_models=True, save_importances=True,
               output_dir=None):
     """Random Forest 5-fold StratifiedKFold on ALREADY-PREPROCESSED data.
 
