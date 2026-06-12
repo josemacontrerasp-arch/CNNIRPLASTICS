@@ -1,0 +1,235 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+% --- code listing style -------------------------------------------------
+\definecolor{codebg}{rgb}{0.96,0.96,0.96}
+\definecolor{codecomment}{rgb}{0.40,0.45,0.40}
+\definecolor{codekw}{rgb}{0.10,0.20,0.60}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  commentstyle=\color{codecomment}\itshape,
+  keywordstyle=\color{codekw}\bfseries,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  showstringspaces=false,
+  columns=fullflexible,
+  xleftmargin=0.5em,
+  literate={\^}{{\textasciicircum}}1
+}
+
+\title{\textbf{Branch Integration and Bioplastic Class Extension}\\
+\large CNNIRPLASTICS --- FTIR Polymer Classification}
+\author{Jose Maria Contreras Prada}
+\date{2 June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report documents two changes made to the \texttt{CNNIRPLASTICS} repository:
+(1) the integration of the \texttt{origin/main} development line into the
+\texttt{add-cosine-baseline-eval} branch, unifying the preprocessing pipeline
+with the new random-forest analysis and reporting work; and (2) the extension of
+the classification target set with two bioplastics, PLA and PHA, at the
+data-builder and label-definition level. Both changes were committed and pushed
+to the remote.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+% =======================================================================
+\section{Branch Merge}
+% =======================================================================
+
+\subsection{Motivation}
+
+Prior to this work the branch \texttt{add-cosine-baseline-eval} and the
+\texttt{origin/main} branch had diverged: neither was a superset of the other.
+The feature branch carried the end-to-end pipeline and spectral preprocessing
+work (\texttt{run\_pipeline.py}, \texttt{preprocess.py}, the cosine-similarity
+baseline, and the real-world lab samples), whereas \texttt{main} carried a
+reworked random-forest pipeline, single-spectrum test-time estimation, the
+feature-importance analysis, and an expanded requirements section in the README.
+Merging was required so that subsequent retraining used a single, unified code
+base.
+
+\subsection{Procedure}
+
+A safety branch \texttt{backup/pre-merge-add-cosine} was created before the
+merge. \texttt{origin/main} was then merged into \texttt{add-cosine-baseline-eval}.
+The merge produced content conflicts in three files, which were resolved
+manually as summarised in Table~\ref{tab:conflicts}.
+
+\begin{table}[h]
+\centering
+\caption{Conflict resolution decisions.}
+\label{tab:conflicts}
+\small
+\begin{tabular}{@{}p{0.27\linewidth} p{0.36\linewidth} p{0.30\linewidth}@{}}
+\toprule
+\textbf{File} & \textbf{Nature of conflict} & \textbf{Resolution} \\
+\midrule
+\texttt{models/cnn\_model\_draft.py} &
+Old monolithic \texttt{load\_and\_preprocess} (main) vs.\ refactored
+\texttt{create\_model} / \texttt{train\_model} / \texttt{test\_model} (branch) &
+Kept branch: the pipeline depends on the refactored API \\
+\addlinespace
+\texttt{models/rf\_model.py} &
+\texttt{preprocess}-module routing (branch) vs.\ inline min--max plus
+feature-importance saving (main) &
+Kept main: preserves the new feature-importance analysis; its min--max is
+equivalent to \texttt{normalize="minmax"} \\
+\addlinespace
+\texttt{data/format\_data.py} &
+Four cosmetic print-string differences (unit notation, whitespace) &
+Kept branch: strings are already pure ASCII and stdout is forced to UTF-8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Verification}
+
+After resolution, the absence of conflict markers was confirmed, all core
+Python modules compiled, and the public APIs imported cleanly: the dataset
+loader, the preprocessing entry points (including SNV and AsLS/arPLS), and the
+refactored CNN functions. The six commodity-plastic classes (HDPE, LDPE, PP,
+PS, PVC, PET) were unchanged by the merge.
+
+\subsection{Outcome}
+
+The merge was recorded as commit \texttt{6cd97ea} and pushed to the remote.
+Files from both development lines are present in the unified tree: the pipeline
+and preprocessing work from the feature branch, and the random-forest,
+single-test, and requirements work from \texttt{main}. The pre-existing SNV and
+AsLS/arPLS implementations in \texttt{preprocess.py} were not modified and remain
+wired into the pipeline configuration.
+
+% =======================================================================
+\section{Bioplastic Class Extension (PLA and PHA)}
+% =======================================================================
+
+\subsection{Background}
+
+The OpenSpecy spectral data committed to the repository contains only the six
+commodity plastics. A search of the 8\,390 metadata identity records returned
+zero matches for PLA- or PHA-related terms. This is by design: the dataset
+builder script downloads the raw OpenSpecy library, filters it down to the six
+target classes, and writes only the matched spectra to disk. The two bioplastics
+were therefore absent from every committed artefact.
+
+\subsection{Keyword Groups Added to the Dataset Builder}
+
+Two new keyword groups were added to the \texttt{target\_polymers} list in
+\texttt{data/data\_processing/openspecy\_dataset\_builder.R}. Each polymer is
+matched against the lowercased \texttt{spectrum\_identity} field using
+word-boundary regular expressions, so the new groups follow the same matching
+convention as the existing six.
+
+\begin{lstlisting}[language=R]
+PLA = c(
+  "pla",
+  "polylactic acid",
+  "poly\\(lactic acid\\)",
+  "polylactide",
+  "lactic acid",
+  "poly-l-lactic acid",
+  "plla"
+),
+
+PHA = c(
+  "pha",
+  "phb",
+  "phbv",
+  "polyhydroxyalkanoate",
+  "polyhydroxyalkanoates",
+  "polyhydroxybutyrate",
+  "poly\\(hydroxybutyrate\\)",
+  "poly-3-hydroxybutyrate",
+  "polyhydroxybutyrate-co-valerate"
+)
+\end{lstlisting}
+
+The PHA group intentionally aggregates the PHB and PHBV variants, which are
+chemically members of the polyhydroxyalkanoate family, into a single class.
+
+\subsection{Label Definition Update}
+
+The two classes were registered in the canonical label list in
+\texttt{data/format\_data.py}. Because the number of output classes is derived
+from the length of this list throughout the code base, this single edit resizes
+both the CNN softmax layer and the random-forest output space automatically.
+
+\begin{lstlisting}[language=Python]
+POLYMER_CLASSES = ["HDPE", "LDPE", "PP", "PS", "PVC", "PET", "PLA", "PHA"]
+\end{lstlisting}
+
+This yields eight classes, with integer indices \texttt{PLA = 6} and
+\texttt{PHA = 7}.
+
+\subsection{Current Status and Caveat}
+
+The change is code-level scaffolding only. The two new classes remain
+\emph{empty} until the OpenSpecy dataset is regenerated by re-running the builder
+script, which requires an R environment and a re-download of the raw OpenSpecy
+library. Until then no training spectrum carries a PLA or PHA label. The pipeline
+remains runnable in this state---the two classes simply contribute no samples---
+but a retrain should not be relied upon for bioplastic discrimination until the
+data is regenerated. In addition, while PLA is expected to be well represented in
+the OpenSpecy library, PHA/PHB/PHBV may be sparse; the class counts printed by
+the builder should be inspected before the class is trusted, and a second data
+source may be required.
+
+\subsection{Outcome}
+
+The keyword groups and the label update were recorded as commit \texttt{c20b143}
+and pushed to the remote.
+
+% =======================================================================
+\section{Summary of Commits}
+% =======================================================================
+
+\begin{table}[h]
+\centering
+\caption{Commits produced by this work, on branch
+\texttt{add-cosine-baseline-eval}.}
+\label{tab:commits}
+\small
+\begin{tabular}{@{}l l p{0.50\linewidth}@{}}
+\toprule
+\textbf{Hash} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\texttt{6cd97ea} & Merge & Integrate \texttt{origin/main} into the feature branch;
+resolve three conflicts \\
+\texttt{c20b143} & Feature & Add PLA and PHA keyword groups and label definitions
+(scaffolding) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Next Steps}
+
+\begin{enumerate}
+  \item Regenerate the OpenSpecy dataset by running the extended builder script
+  in an R environment; inspect the per-class spectrum counts.
+  \item Clear the cached processed array (\texttt{output/\_cache\_processed.npz})
+  so the new eight-class data is reprocessed from scratch.
+  \item Retrain the CNN and random-forest models on the unified pipeline and
+  evaluate per-class F1, with attention to the two new bioplastic classes.
+  \item If PHA coverage is insufficient, identify a supplementary FTIR source
+  for that class.
+\end{enumerate}
+
+\end{document}
