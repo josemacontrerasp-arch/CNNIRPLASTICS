@@ -57,6 +57,10 @@ for _cls in (keras.layers.Dense, keras.layers.Conv1D, keras.layers.Conv2D,
 # --------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+import preprocess as _preprocess_module
+from run_pipeline import PREPROCESS_CONFIG
+
 C8_CSV = ROOT / "data" / "FTIR_PLASTIC_c8.csv"
 MODELS_DIR = ROOT / "output"
 OUT_DIR = ROOT / "results" / "saliency"
@@ -101,17 +105,9 @@ def get_grid_and_samples():
     return grid, samples
 
 
-def minmax(X):
-    """Per-spectrum min-max to [0,1] -- identical to training/predict.py."""
-    lo = X.min(axis=1, keepdims=True)
-    rng = X.max(axis=1, keepdims=True) - lo
-    rng[rng == 0] = 1.0
-    return (X - lo) / rng
-
-
 # ---------------------------------------------------------------- models
 def load_models():
-    paths = sorted(MODELS_DIR.glob("fold_*.keras"))
+    paths = sorted(MODELS_DIR.glob("cnn_fold_*.keras"))
     if not paths:
         sys.exit(f"No fold_*.keras models in {MODELS_DIR}")
     models = [tf.keras.models.load_model(p) for p in paths]
@@ -201,7 +197,7 @@ def overlap_report(grid, cam_profile, label, tol=30):
 def plot_class(grid, mean_spec, sal, cam, label, peaks, hits):
     fig, ax = plt.subplots(figsize=(10, 4))
     # spectrum (note: %T, absorption dips downward)
-    ax.plot(grid, mean_spec, color="black", lw=1.0, label="mean spectrum (norm %T)")
+    ax.plot(grid, mean_spec, color="black", lw=1.0, label="mean spectrum (preprocessed, norm01)")
     # heatmap background = Grad-CAM
     ax.imshow(cam[None, :], aspect="auto", cmap="inferno", alpha=0.55,
               extent=[grid.min(), grid.max(), -0.05, 1.05])
@@ -255,7 +251,7 @@ def main():
     models = load_models()
 
     md = ["# CNN Saliency / Explainability Analysis\n",
-          "Ensemble (4 fold models) gradient saliency and 1-D Grad-CAM on the "
+          f"Ensemble ({len(models)} fold models) gradient saliency and 1-D Grad-CAM on the "
           "1-D CNN. For each class we average maps over "
           f"{N_PER_CLASS} correctly-classified c8 spectra.\n",
           "Spectra are normalized %T (absorption points downward). Diagnostic "
@@ -268,11 +264,13 @@ def main():
     cams_overview = {}
     for label in ["HDPE", "LDPE", "PP", "PS", "PVC", "PET"]:
         cls = LABEL_TO_INT[label]
-        X = minmax(samples[label].astype(np.float32))
+        X = _preprocess_module.preprocess(
+            samples[label].astype(np.float64), PREPROCESS_CONFIG
+        ).astype(np.float32)
         # keep only spectra the ensemble gets right, take the first N
-        probs = np.mean([m.predict(X[..., None], verbose=0) for m in models], axis=0)
+        probs = np.mean([m.predict(X[..., np.newaxis], verbose=0) for m in models], axis=0)
         correct = np.where(np.argmax(probs, axis=1) == cls)[0][:N_PER_CLASS]
-        Xc = X[correct][..., None]
+        Xc = X[correct][..., np.newaxis]
         mean_spec = norm01(X[correct].mean(axis=0))
 
         sal, cam = ensemble_profile(models, Xc.astype(np.float32), cls, L)
